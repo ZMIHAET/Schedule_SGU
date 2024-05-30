@@ -2,20 +2,15 @@ package com.example.shedule;
 
 import static com.example.shedule.R.*;
 
-import android.content.Context;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
@@ -368,7 +363,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         backButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -414,7 +408,7 @@ public class MainActivity extends AppCompatActivity {
             String faculty = facultySpinner.getSelectedItem().toString();
             String group = groupSpinner.getSelectedItem().toString();
             String facultyUrl = facultySiteName(faculty);
-            String sessionUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
+            String sessionUrl = "https://www.old.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
             Document sessionDoc = null;
             try {
                 if (savedSessionDoc == null || savedSessionDoc.text().length() == 0)
@@ -446,7 +440,7 @@ public class MainActivity extends AppCompatActivity {
         String faculty = facultySpinner.getSelectedItem().toString();
         String group = groupSpinner.getSelectedItem().toString();
         String facultyUrl = facultySiteName(faculty);
-        String scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
+        String scheduleUrl = "https://www.old.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
         new ParseScheduleThread(scheduleUrl).start();
         dayOfWeekText.setVisibility(View.VISIBLE);
         prevDayButton.setVisibility(View.VISIBLE);
@@ -455,7 +449,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> parseFaculties() {
         List<String> faculties = new ArrayList<>();
         try {
-            Document document = Jsoup.connect("https://www.sgu.ru/schedule").get();
+            Document document = Jsoup.connect("https://www.old.sgu.ru/schedule").get();
             Element elements = document.select("#schedule_page > div > div.panes_item.panes_item__type_group > ul:nth-child(3)").first();
             for (Element li : elements.select("li")) {
                 faculties.add(li.text());
@@ -539,7 +533,7 @@ public class MainActivity extends AppCompatActivity {
     private List<String> parseGroups(String facultyName) {
         List<String> groups = new ArrayList<>();
         try {
-            String facultyUrl = "https://www.sgu.ru/schedule/" + facultySiteName(facultyName);
+            String facultyUrl = "https://www.old.sgu.ru/schedule/" + facultySiteName(facultyName);
             Document document = Jsoup.connect(facultyUrl).get();
             Elements formElements = document.select("#schedule_page > fieldset.do.form_education.form-wrapper > div > fieldset, #schedule_page > fieldset.zo.form_education.form-wrapper > div > fieldset");
             for (Element formElement : formElements) {
@@ -575,8 +569,10 @@ public class MainActivity extends AppCompatActivity {
                 currentDayOfWeekIndex = (calendar.get(Calendar.DAY_OF_WEEK) - 1 + 7) % 7 == 1 ? 0 :
                         (calendar.get(Calendar.DAY_OF_WEEK) - 1 + 7) % 7 - 1;
             }
-            Log.d("day", "bb " + currentDayOfWeekIndex);
-            Log.d("dayfgg", "bb " + currentDayOfWeek);
+            if (currentDayOfWeekIndex == -1 || currentDayOfWeek == 0) {
+                currentDayOfWeekIndex++;
+                currentDayOfWeek++;
+            }
             for (int i = 1; i <= 8; i++) { // Парсим все 8 пар
                 String elementId = i + "_" + (currentDayOfWeekIndex + 1); // Формируем id элемента таблицы для нужной пары и нужного дня недели
                 Element element = document.getElementById(elementId);
@@ -702,7 +698,6 @@ public class MainActivity extends AppCompatActivity {
                     courseAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
                     courseSpinner.setAdapter(courseAdapter);
 
-                    Log.d("MainActivity", "courses: " + courses);
                     courseSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                         @Override
                         public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -763,8 +758,6 @@ public class MainActivity extends AppCompatActivity {
                         for (int i = 0; i < 8; i++){
                             savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
                         }
-                        Log.d("MainActivity", "savedSchedules: " + savedSchedules.get(currentDayOfWeek - 1).toString());
-
                     }
                 }
             });
