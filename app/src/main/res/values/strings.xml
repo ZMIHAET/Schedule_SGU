@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">MyApp</string>
+    <string name="app_name">Расписание СГУ</string>
     <string name="load_schedule">Загрузить расписание</string>
     <string name="choose_fac"><u>Выберите факультет</u></string>
     <string name="choose_gr"><u>Выберите группу</u></string>
