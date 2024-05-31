@@ -682,9 +682,13 @@ public class MainActivity extends AppCompatActivity {
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
-
                     List<String> courses = new ArrayList<>();
                     char lastCourse = (groups.get(groups.size() - 1)).charAt(0);
+                    int courseQuantity = 2;
+                    while (!Character.isDigit(lastCourse)) {
+                        lastCourse = (groups.get(groups.size() - courseQuantity)).charAt(0);
+                        courseQuantity++;
+                    }
                     for (int i = 0; i < Character.getNumericValue(lastCourse); i++){
                         int k = i + 1;
                         String numberOfCourse = String.valueOf(k);
