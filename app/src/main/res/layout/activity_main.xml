@@ -107,14 +107,20 @@
                 android:padding="8dp"
                 android:text="8:20\n9:50" />
 
-            <TextView
-                android:id="@+id/lesson1"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_with_up"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -127,14 +133,20 @@
                 android:padding="8dp"
                 android:text="10:00\n11:35" />
 
-            <TextView
-                android:id="@+id/lesson2"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson2"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -147,14 +159,20 @@
                 android:padding="8dp"
                 android:text="12:05\n13:40" />
 
-            <TextView
-                android:id="@+id/lesson3"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson3"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -167,14 +185,20 @@
                 android:padding="8dp"
                 android:text="13:50\n15:25" />
 
-            <TextView
-                android:id="@+id/lesson4"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson4"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -187,14 +211,20 @@
                 android:padding="8dp"
                 android:text="15:35\n17:10" />
 
-            <TextView
-                android:id="@+id/lesson5"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson5"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -207,14 +237,20 @@
                 android:padding="8dp"
                 android:text="17:20\n18:40" />
 
-            <TextView
-                android:id="@+id/lesson6"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson6"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -227,14 +263,20 @@
                 android:padding="8dp"
                 android:text="18:45\n20:05" />
 
-            <TextView
-                android:id="@+id/lesson7"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson7"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
         <TableRow>
@@ -247,17 +289,24 @@
                 android:padding="8dp"
                 android:text="20:10\n21:30" />
 
-            <TextView
-                android:id="@+id/lesson8"
+            <ScrollView
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:layout_weight="1"
+                android:fillViewport="true"
                 android:background="@drawable/cell_border_no_left"
-                android:ellipsize="end"
-                android:padding="8dp" />
+                android:padding="3dp">
+                <TextView
+                    android:id="@+id/lesson8"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="8dp"
+                    android:layout_gravity="fill_vertical" />
+            </ScrollView>
         </TableRow>
 
     </TableLayout>
+
 
     <LinearLayout
         android:id="@+id/schedule_layout"

@@ -679,8 +679,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             final List<String> groups = parseGroups(faculty);
-
-
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {
@@ -718,8 +716,6 @@ public class MainActivity extends AppCompatActivity {
                             // Нет действий при сбросе выбора
                         }
                     });
-
-
                 }
             });
         }
