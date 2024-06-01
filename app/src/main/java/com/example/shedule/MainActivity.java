@@ -109,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         originalColor = Color.argb(255, 103, 80, 164);
-        fadedColor = Color.argb(255, 124, 65, 250);
+        fadedColor = Color.argb(255, 105, 104, 104);
 
         final boolean[] isLessonVisibleZnam = {true};
         final boolean[] isLessonVisibleChis = {true};

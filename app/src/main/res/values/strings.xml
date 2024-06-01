@@ -12,4 +12,5 @@
     <string name="lab">лаб</string>
     <string name="session">Расписание сессии</string>
     <string name="choose_course"><u>Выберите курс</u></string>
+    <string name="SGU_schedule">Расписание занятий СГУ</string>
 </resources>
