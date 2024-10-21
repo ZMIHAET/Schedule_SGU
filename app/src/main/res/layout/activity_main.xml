@@ -21,7 +21,7 @@
             android:layout_height="50dp"
             android:layout_marginBottom="16dp"
             android:text="@string/SGU_schedule"
-            android:textColor="#000000"
+            android:textColor="@color/text_color"
             android:textSize="24sp"
             android:textStyle="bold" />
 
@@ -115,7 +115,8 @@
                     android:background="@drawable/cell_border_full"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="8:20\n9:50" />
+                    android:text="8:20\n9:50"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -129,7 +130,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -141,7 +143,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="10:00\n11:35" />
+                    android:text="10:00\n11:35"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -155,7 +158,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -167,7 +171,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="12:05\n13:40" />
+                    android:text="12:05\n13:40"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -181,7 +186,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -193,7 +199,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="13:50\n15:25" />
+                    android:text="13:50\n15:25"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -207,7 +214,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -219,7 +227,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="15:35\n17:10" />
+                    android:text="15:35\n17:10"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -233,7 +242,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -245,7 +255,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="17:20\n18:40" />
+                    android:text="17:20\n18:40"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -259,7 +270,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -271,7 +283,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="18:45\n20:05" />
+                    android:text="18:45\n20:05"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -285,7 +298,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -297,7 +311,8 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="20:10\n21:30" />
+                    android:text="20:10\n21:30"
+                    android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
                     android:layout_width="0dp"
@@ -311,7 +326,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:padding="8dp"
-                        android:layout_gravity="fill_vertical" />
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
                 </androidx.core.widget.NestedScrollView>
             </TableRow>
 
@@ -348,14 +364,14 @@
                     android:layout_weight="1"
                     android:text="@string/prev_button" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/znam_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/znam" />
 
-                <Button
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/num_button"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"

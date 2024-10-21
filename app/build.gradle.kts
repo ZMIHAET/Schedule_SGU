@@ -40,5 +40,7 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
+    androidTestImplementation("junit:junit:4.12")
+    androidTestImplementation("junit:junit:4.12")
+    implementation("com.google.android.material:material:1.12.0")
 }

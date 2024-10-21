@@ -135,8 +135,8 @@ public class MainActivity extends AppCompatActivity {
         prevDayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                numButton.setBackgroundColor(originalColor);
-                znamButton.setBackgroundColor(originalColor);
+                numButton.setBackgroundResource(android.R.drawable.btn_default);
+                znamButton.setBackgroundResource(android.R.drawable.btn_default);
                 switchLek.setChecked(true);
                 switchPr.setChecked(true);
                 switchLab.setChecked(true);
@@ -152,8 +152,8 @@ public class MainActivity extends AppCompatActivity {
         nextDayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                numButton.setBackgroundColor(originalColor);
-                znamButton.setBackgroundColor(originalColor);
+                numButton.setBackgroundResource(android.R.drawable.btn_default);
+                znamButton.setBackgroundResource(android.R.drawable.btn_default);
                 switchLek.setChecked(true);
                 switchPr.setChecked(true);
                 switchLab.setChecked(true);
@@ -178,8 +178,8 @@ public class MainActivity extends AppCompatActivity {
                 scheduleTable.setVisibility(View.VISIBLE);
                 switchLayout.setVisibility(View.VISIBLE);
                 loadsessionLayout.setVisibility(View.VISIBLE);
-                numButton.setBackgroundColor(originalColor);
-                znamButton.setBackgroundColor(originalColor);
+                numButton.setBackgroundResource(android.R.drawable.btn_default);
+                znamButton.setBackgroundResource(android.R.drawable.btn_default);
                 switchLek.setChecked(true);
                 switchPr.setChecked(true);
                 switchLab.setChecked(true);
@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         } else {
-                            znamButton.setBackgroundColor(originalColor);
+                            znamButton.setBackgroundResource(android.R.drawable.btn_default);
                             if (savedLesson.contains("чис.")) {
                                 if (!isLessonVisibleChis[0]) {
                                     int indexOfZnam = savedLesson.indexOf("знам.");
@@ -248,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             }
                         } else {
-                            numButton.setBackgroundColor(originalColor);
+                            numButton.setBackgroundResource(android.R.drawable.btn_default);
                             if (savedLesson.contains("знам.")) {
                                 if (!isLessonVisibleZnam[0]) {
                                     int indexOfZnam = savedLesson.indexOf("знам.");
