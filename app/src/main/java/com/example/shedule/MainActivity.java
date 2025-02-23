@@ -2,6 +2,7 @@ package com.example.shedule;
 
 import static com.example.shedule.R.*;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -31,6 +32,8 @@ import java.util.Collections;
 import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
+    private Button btnShowSchedule;
+    private Button btnLoadSchedule;
     private Spinner facultySpinner;
     private Spinner groupSpinner;
     private Spinner courseSpinner;
@@ -48,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
     private SwitchCompat switchPr;
     private SwitchCompat switchLab;
     private int currentDayOfWeek = 1;
+    private LinearLayout buttonsLayout;
     private LinearLayout loadLayout;
     private LinearLayout scheduleLayout;
     private LinearLayout switchLayout;
@@ -70,6 +74,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        buttonsLayout = findViewById(R.id.buttons_layout);
+        btnShowSchedule = findViewById(R.id.btn_show_schedule);
+        btnLoadSchedule = findViewById(R.id.btn_load_schedule);
         facultySpinner = findViewById(R.id.faculty_spinner);
         groupSpinner = findViewById(R.id.group_spinner);
         courseSpinner = findViewById(R.id.course_spinner);
@@ -93,6 +100,17 @@ public class MainActivity extends AppCompatActivity {
         backButton = findViewById(R.id.back_button);
         returnButton = findViewById(id.return_button);
 
+
+
+        btnLoadSchedule.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Log.d("MainActivity", "Кнопка была нажата");
+                buttonsLayout.setVisibility(View.GONE);
+                loadLayout.setVisibility(View.VISIBLE);
+            }
+        });
+
         // Инициализировать массив lessons
 
         lessons = new TextView[8];
@@ -108,6 +126,42 @@ public class MainActivity extends AppCompatActivity {
             savedSchedules.add(new ArrayList<String>());
         }
 
+        SharedPreferences sharedPreferences = getSharedPreferences("SchedulePrefs", MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        boolean isScheduleSaved = sharedPreferences.contains("lesson_0"); // Проверяем, сохранено ли расписание
+
+        if (isScheduleSaved) {
+            for (int i = 0; i < lessons.length; i++) {
+                String savedLesson = sharedPreferences.getString("lesson_" + i, "");
+                lessons[i].setText(savedLesson);
+            }
+            Log.d("MainActivity", "Сохранённое расписание загружено!");
+        }
+        btnShowSchedule.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                buttonsLayout.setVisibility(View.INVISIBLE);
+                // делаем видимым schedule_layout, switch_layout и schedule_table
+                scheduleLayout.setVisibility(View.VISIBLE);
+                scheduleTable.setVisibility(View.VISIBLE);
+                dayOfWeekText.setVisibility(View.VISIBLE);
+                switchLayout.setVisibility(View.VISIBLE);
+                loadsessionLayout.setVisibility(View.VISIBLE);
+                numButton.setBackgroundResource(android.R.drawable.btn_default);
+                znamButton.setBackgroundResource(android.R.drawable.btn_default);
+                switchLek.setChecked(true);
+                switchPr.setChecked(true);
+                switchLab.setChecked(true);
+                Log.d("MainActivity", "Расписание показано!");
+
+                // Загружаем сохранённое расписание
+                for (int i = 0; i < lessons.length; i++) {
+                    String savedLesson = sharedPreferences.getString("lesson_" + i, "");
+                    lessons[i].setText(savedLesson);
+                }
+            }
+        });
+
         originalColor = Color.argb(255, 103, 80, 164);
         fadedColor = Color.argb(255, 105, 104, 104);
 
@@ -120,18 +174,50 @@ public class MainActivity extends AppCompatActivity {
         scheduleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
 
         new ParseFacultiesThread().start();
+
+
         facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String faculty = facultySpinner.getSelectedItem().toString();
                 new ParseGroupsThread(faculty).start();
             }
-
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
                 // Нет действий при сбросе выбора
             }
         });
+
+        loadButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                // скрываем load_layout
+                loadLayout.setVisibility(View.GONE);
+
+                // делаем видимым schedule_layout, switch_layout и schedule_table
+                scheduleLayout.setVisibility(View.VISIBLE);
+                scheduleTable.setVisibility(View.VISIBLE);
+                switchLayout.setVisibility(View.VISIBLE);
+                loadsessionLayout.setVisibility(View.VISIBLE);
+                numButton.setBackgroundResource(android.R.drawable.btn_default);
+                znamButton.setBackgroundResource(android.R.drawable.btn_default);
+                switchLek.setChecked(true);
+                switchPr.setChecked(true);
+                switchLab.setChecked(true);
+
+                // Генерируем расписание
+                ScheduleGenerator();
+
+                // Сохраняем расписание
+                for (int i = 0; i < lessons.length; i++) {
+                    editor.putString("lesson_" + i, lessons[i].getText().toString());
+                }
+                editor.apply();
+                Log.d("MainActivity", "Новое расписание сохранено!");
+            }
+        });
+
         prevDayButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -166,28 +252,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        loadButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-                // скрываем load_layout
-                loadLayout.setVisibility(View.GONE);
-
-                // делаем видимым schedule_layout, switch_layout и schedule_table
-                scheduleLayout.setVisibility(View.VISIBLE);
-                scheduleTable.setVisibility(View.VISIBLE);
-                switchLayout.setVisibility(View.VISIBLE);
-                loadsessionLayout.setVisibility(View.VISIBLE);
-                numButton.setBackgroundResource(android.R.drawable.btn_default);
-                znamButton.setBackgroundResource(android.R.drawable.btn_default);
-                switchLek.setChecked(true);
-                switchPr.setChecked(true);
-                switchLab.setChecked(true);
-
-                // выводим расписание
-                ScheduleGenerator();
-            }
-        });
         znamButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

@@ -6,6 +6,35 @@
     android:layout_height="match_parent"
     android:padding="16dp">
 
+    <!-- Кнопки управления -->
+    <LinearLayout
+        android:id="@+id/buttons_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="50dp"> <!-- Уменьшил отступ -->
+
+        <Button
+            android:id="@+id/btn_show_schedule"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_show_schedule"
+            android:layout_marginBottom="20dp"
+            />
+
+        <Button
+            android:id="@+id/btn_load_schedule"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_load_schedule"
+            />
+    </LinearLayout>
+
+
     <LinearLayout
         android:id="@+id/load_layout"
         android:layout_width="match_parent"
@@ -13,7 +42,7 @@
         android:layout_weight="1"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:visibility="visible"
+        android:visibility="invisible"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView

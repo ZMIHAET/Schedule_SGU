@@ -13,4 +13,6 @@
     <string name="session">Расписание сессии</string>
     <string name="choose_course"><u>Выберите курс</u></string>
     <string name="SGU_schedule">Расписание занятий СГУ</string>
+    <string name="btn_load_schedule">Загрузить новое расписание</string>
+    <string name="btn_show_schedule">Показать расписание</string>
 </resources>
