@@ -2,9 +2,7 @@ package com.example.shedule;
 
 import static com.example.shedule.R.*;
 
-import android.content.SharedPreferences;
 import android.graphics.Color;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -20,15 +18,13 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
+import com.example.shedule.parser.ParseFacultiesThread;
+import com.example.shedule.parser.ParseGroupsThread;
+import com.example.shedule.parser.ParseScheduleThread;
 
-import java.io.IOException;
+import org.jsoup.nodes.Document;
+
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Collections;
 import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
@@ -60,14 +56,15 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout sessionLayout;
     private TableLayout scheduleTable;
     private TextView[] lessons;
-    private String[] daysOfWeek = {"", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"};
     private boolean firstParse = false;
     private List<ArrayList<String>> savedSchedules = new ArrayList<>();
     private List<String> savedSessionData = new ArrayList<>();
     private Document savedSessionDoc;
     private int originalColor;
     private int fadedColor;
-    private Calendar calendar = Calendar.getInstance();
+    private FacultySiteName facultySiteName;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
 
@@ -99,8 +96,7 @@ public class MainActivity extends AppCompatActivity {
         sessionTable = findViewById(R.id.session_table);
         backButton = findViewById(R.id.back_button);
         returnButton = findViewById(id.return_button);
-
-
+        facultySiteName = new FacultySiteName();
 
         btnLoadSchedule.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -126,17 +122,7 @@ public class MainActivity extends AppCompatActivity {
             savedSchedules.add(new ArrayList<String>());
         }
 
-        SharedPreferences sharedPreferences = getSharedPreferences("SchedulePrefs", MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        boolean isScheduleSaved = sharedPreferences.contains("lesson_0"); // Проверяем, сохранено ли расписание
 
-        if (isScheduleSaved) {
-            for (int i = 0; i < lessons.length; i++) {
-                String savedLesson = sharedPreferences.getString("lesson_" + i, "");
-                lessons[i].setText(savedLesson);
-            }
-            Log.d("MainActivity", "Сохранённое расписание загружено!");
-        }
         btnShowSchedule.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -154,11 +140,7 @@ public class MainActivity extends AppCompatActivity {
                 switchLab.setChecked(true);
                 Log.d("MainActivity", "Расписание показано!");
 
-                // Загружаем сохранённое расписание
-                for (int i = 0; i < lessons.length; i++) {
-                    String savedLesson = sharedPreferences.getString("lesson_" + i, "");
-                    lessons[i].setText(savedLesson);
-                }
+
             }
         });
 
@@ -173,14 +155,14 @@ public class MainActivity extends AppCompatActivity {
 
         scheduleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
 
-        new ParseFacultiesThread().start();
+        new ParseFacultiesThread(this, facultySpinner).start();
 
 
         facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 String faculty = facultySpinner.getSelectedItem().toString();
-                new ParseGroupsThread(faculty).start();
+                new ParseGroupsThread(MainActivity.this, faculty, courseSpinner, groupSpinner).start();
             }
             @Override
             public void onNothingSelected(AdapterView<?> parent) {
@@ -209,12 +191,6 @@ public class MainActivity extends AppCompatActivity {
                 // Генерируем расписание
                 ScheduleGenerator();
 
-                // Сохраняем расписание
-                for (int i = 0; i < lessons.length; i++) {
-                    editor.putString("lesson_" + i, lessons[i].getText().toString());
-                }
-                editor.apply();
-                Log.d("MainActivity", "Новое расписание сохранено!");
             }
         });
 
@@ -259,25 +235,25 @@ public class MainActivity extends AppCompatActivity {
                 isLessonVisibleZnam[0] = !isLessonVisibleZnam[0];
                 for (int i = 0; i < lessons.length; i++) {
                     String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                    if (savedLesson.contains("знам.")) {
+                    if (savedLesson.contains("З:")) {
                         if (isLessonVisibleZnam[0] == false) {
                             znamButton.setBackgroundColor(fadedColor);
-                            if(!savedLesson.contains("чис."))
+                            if(!savedLesson.contains("Ч:"))
                                 lessons[i].setText("");
                             else {
                                 if (!isLessonVisibleChis[0])
                                     lessons[i].setText("");
                                 else {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     if (checkSwitches(savedLesson.substring(0, indexOfZnam)))
                                         lessons[i].setText(savedLesson.substring(0, indexOfZnam));
                                 }
                             }
                         } else {
                             znamButton.setBackgroundResource(android.R.drawable.btn_default);
-                            if (savedLesson.contains("чис.")) {
+                            if (savedLesson.contains("Ч:")) {
                                 if (!isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(indexOfZnam));
                                 } else
                                     lessons[i].setText(savedLesson);
@@ -298,25 +274,25 @@ public class MainActivity extends AppCompatActivity {
 
                 for (int i = 0; i < lessons.length; i++) {
                     String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                    if (savedLesson.contains("чис.")) {
+                    if (savedLesson.contains("Ч:")) {
                         if (!isLessonVisibleChis[0]) {
                             numButton.setBackgroundColor(fadedColor);
-                            if (!savedLesson.contains("знам."))
+                            if (!savedLesson.contains("З:"))
                                 lessons[i].setText("");
                             else {
                                 if (!isLessonVisibleZnam[0])
                                     lessons[i].setText("");
                                 else {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     if (checkSwitches(savedLesson.substring(indexOfZnam)))
                                         lessons[i].setText(savedLesson.substring(indexOfZnam));
                                 }
                             }
                         } else {
                             numButton.setBackgroundResource(android.R.drawable.btn_default);
-                            if (savedLesson.contains("знам.")) {
+                            if (savedLesson.contains("З:")) {
                                 if (!isLessonVisibleZnam[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(0, indexOfZnam));
                                 } else
                                     lessons[i].setText(savedLesson);
@@ -336,21 +312,21 @@ public class MainActivity extends AppCompatActivity {
                 boolean isChecked = switchLek.isChecked();
                 for (int i = 0; i < lessons.length; i++) {
                     String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                    if (savedLesson.contains("лек.")) {
+                    if (savedLesson.contains("ЛЕКЦИЯ")) {
                         if (!isChecked) {
                             lessons[i].setText("");
                         } else {
-                            if (!savedLesson.contains("знам.") && !savedLesson.contains("чис.") )
+                            if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
                                 lessons[i].setText(savedLesson);
                             else {
                                 if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
                                     lessons[i].setText(savedLesson);
                                 else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(0, indexOfZnam));
                                 }
                                 else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(indexOfZnam));
                                 }
                             }
@@ -366,21 +342,21 @@ public class MainActivity extends AppCompatActivity {
                 boolean isChecked = switchPr.isChecked();
                 for (int i = 0; i < lessons.length; i++) {
                     String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                    if (savedLesson.contains("пр.")) {
+                    if (savedLesson.contains("ПРАКТИКА")) {
                         if (!isChecked) {
                             lessons[i].setText("");
                         } else {
-                            if (!savedLesson.contains("знам.") && !savedLesson.contains("чис.") )
+                            if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
                                 lessons[i].setText(savedLesson);
                             else {
                                 if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
                                     lessons[i].setText(savedLesson);
                                 else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(0, indexOfZnam));
                                 }
                                 else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(indexOfZnam));
                                 }
                             }
@@ -397,21 +373,21 @@ public class MainActivity extends AppCompatActivity {
                 boolean isChecked = switchLab.isChecked();
                 for (int i = 0; i < lessons.length; i++) {
                     String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                    if (savedLesson.contains("лаб.")) {
+                    if (savedLesson.contains("ЛАБОРАТОРНАЯ")) {
                         if (!isChecked) {
                             lessons[i].setText("");
                         } else {
-                            if (!savedLesson.contains("знам.") && !savedLesson.contains("чис.") )
+                            if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
                                 lessons[i].setText(savedLesson);
                             else {
                                 if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
                                     lessons[i].setText(savedLesson);
                                 else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(0, indexOfZnam));
                                 }
                                 else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
-                                    int indexOfZnam = savedLesson.indexOf("знам.");
+                                    int indexOfZnam = savedLesson.indexOf("З:");
                                     lessons[i].setText(savedLesson.substring(indexOfZnam));
                                 }
                             }
@@ -424,7 +400,7 @@ public class MainActivity extends AppCompatActivity {
         loadSession.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
-                new LoadSessionTask().execute();
+                new LoadSessionTask(facultySpinner, groupSpinner, savedSessionDoc, MainActivity.this).execute();
             }
         });
 
@@ -460,197 +436,29 @@ public class MainActivity extends AppCompatActivity {
         });
     }
     private boolean checkSwitches(String savedLesson){
-        if (savedLesson.contains("лек.") && switchLek.isChecked() || savedLesson.contains("пр.") && switchPr.isChecked() || savedLesson.contains("лаб.") && switchLab.isChecked())
-            return true;
-        else
-            return false;
-    }
-    private class LoadSessionTask extends AsyncTask<Void, Void, Void> {
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            // Выполняем сетевую операцию здесь
-            String faculty = facultySpinner.getSelectedItem().toString();
-            String group = groupSpinner.getSelectedItem().toString();
-            String facultyUrl = facultySiteName(faculty);
-            String sessionUrl = "https://www.old.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
-            Document sessionDoc = null;
-            try {
-                if (savedSessionDoc == null || savedSessionDoc.text().length() == 0)
-                    sessionDoc = Jsoup.connect(sessionUrl).get();
-                else
-                    sessionDoc = savedSessionDoc;
-                if ((savedSessionDoc == null || savedSessionDoc.text().length() == 0) && sessionDoc != null)
-                    savedSessionDoc = sessionDoc;
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-            new ParseSessionThread(sessionDoc).start();
-            return null;
-        }
-
-        @Override
-        protected void onPostExecute(Void aVoid) {
-            super.onPostExecute(aVoid);
-            // Обновляем пользовательский интерфейс здесь
-            scheduleLayout.setVisibility(View.GONE);
-            scheduleTable.setVisibility(View.GONE);
-            switchLayout.setVisibility(View.GONE);
-            loadsessionLayout.setVisibility(View.GONE);
-            sessionLayout.setVisibility(View.VISIBLE);
-        }
+        return savedLesson.contains("ЛЕКЦИЯ") && switchLek.isChecked() || savedLesson.contains("ПРАКТИКА") && switchPr.isChecked() || savedLesson.contains("ЛАБОРАТОРНАЯ") && switchLab.isChecked();
     }
 
     private void ScheduleGenerator(){
         String faculty = facultySpinner.getSelectedItem().toString();
         String group = groupSpinner.getSelectedItem().toString();
-        String facultyUrl = facultySiteName(faculty);
-        String scheduleUrl = "https://www.old.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
-        new ParseScheduleThread(scheduleUrl).start();
+        Log.d("faculty", faculty);
+        String facultyUrl = facultySiteName.showFacultyName(faculty);
+        String scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
+        new ParseScheduleThread(MainActivity.this, scheduleUrl,
+                savedSchedules, currentDayOfWeek, dayOfWeekText,
+                lessons).start();
         dayOfWeekText.setVisibility(View.VISIBLE);
         prevDayButton.setVisibility(View.VISIBLE);
         nextDayButton.setVisibility(View.VISIBLE);
     }
-    private List<String> parseFaculties() {
-        List<String> faculties = new ArrayList<>();
-        try {
-            Document document = Jsoup.connect("https://www.old.sgu.ru/schedule").get();
-            Element elements = document.select("#schedule_page > div > div.panes_item.panes_item__type_group > ul:nth-child(3)").first();
-            for (Element li : elements.select("li")) {
-                faculties.add(li.text());
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return faculties;
-    }
 
-    private String facultySiteName(String facultyRuName){
-        String facultyCorrectName;
-        switch (facultyRuName){
-            case "Биологический факультет":
-                facultyCorrectName = "bf";
-                break;
-            case "Географический факультет":
-                facultyCorrectName = "gf";
-                break;
-            case "Геологический факультет":
-                facultyCorrectName = "gl";
-                break;
-            case "Институт искусств":
-                facultyCorrectName = "ii";
-                break;
-            case "Институт истории и международных отношений":
-                facultyCorrectName = "imo";
-                break;
-            case "Институт физики":
-                facultyCorrectName = "ff";
-                break;
-            case "Институт физической культуры и спорта":
-                facultyCorrectName = "ifk";
-                break;
-            case "Институт филологии и журналистики":
-                facultyCorrectName = "ifg";
-                break;
-            case "Институт химии":
-                facultyCorrectName = "ih";
-                break;
-            case "Институт дополнительного профессионального образования":
-                facultyCorrectName = "idpo";
-                break;
-            case "Механико-математический факультет":
-                facultyCorrectName = "mm";
-                break;
-            case "Социологический факультет":
-                facultyCorrectName = "sf";
-                break;
-            case "Факультет иностранных языков и лингводидактики":
-                facultyCorrectName = "fi";
-                break;
-            case "Факультет компьютерных наук и информационных технологий":
-                facultyCorrectName = "knt";
-                break;
-            case "Факультет психологии":
-                facultyCorrectName = "fps";
-                break;
-            case "Факультет психолого-педагогического и специального образования":
-                facultyCorrectName = "fppso";
-                break;
-            case "Факультет фундаментальной медицины и медицинских технологий":
-                facultyCorrectName = "fmimt";
-                break;
-            case "Философский факультет":
-                facultyCorrectName = "fp";
-                break;
-            case "Экономический факультет":
-                facultyCorrectName = "ef";
-                break;
-            case "Юридический факультет":
-                facultyCorrectName = "uf";
-                break;
-            default:
-                facultyCorrectName = "bf";
-                break;
-        }
-        return facultyCorrectName;
-    }
-
-    private List<String> parseGroups(String facultyName) {
-        List<String> groups = new ArrayList<>();
-        try {
-            String facultyUrl = "https://www.old.sgu.ru/schedule/" + facultySiteName(facultyName);
-            Document document = Jsoup.connect(facultyUrl).get();
-            Elements formElements = document.select("#schedule_page > fieldset.do.form_education.form-wrapper > div > fieldset, #schedule_page > fieldset.zo.form_education.form-wrapper > div > fieldset");
-            for (Element formElement : formElements) {
-                Elements courseElements = formElement.select("> div > fieldset");
-                for (Element courseElement : courseElements) {
-                    Elements groupElements = courseElement.select("> div > a");
-                    for (int i = 0; i < groupElements.size(); i++) {
-                        String groupName = groupElements.get(i).text();
-                        if (formElement.cssSelector().contains(".zo")) {
-                            groupName += " (заочная)";
-                        }
-                        groups.add(groupName);
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Collections.sort(groups);
-        return groups;
-    }
-
-    private ArrayList<String> parseSchedule(String scheduleUrl) {
-        ArrayList<String> schedule = new ArrayList<>();
-        try {
-            Document document = Jsoup.connect(scheduleUrl).get();
-            int currentDayOfWeekIndex;
-            if (firstParse) {
-                currentDayOfWeekIndex = currentDayOfWeek == 1 ? 0 : currentDayOfWeek - 1;
-            } else {
-                firstParse = true;
-                currentDayOfWeek = (calendar.get(Calendar.DAY_OF_WEEK) - 1 + 7) % 7;
-                currentDayOfWeekIndex = (calendar.get(Calendar.DAY_OF_WEEK) - 1 + 7) % 7 == 1 ? 0 :
-                        (calendar.get(Calendar.DAY_OF_WEEK) - 1 + 7) % 7 - 1;
-            }
-            if (currentDayOfWeekIndex == -1 || currentDayOfWeek == 0) {
-                currentDayOfWeekIndex++;
-                currentDayOfWeek++;
-            }
-            for (int i = 1; i <= 8; i++) { // Парсим все 8 пар
-                String elementId = i + "_" + (currentDayOfWeekIndex + 1); // Формируем id элемента таблицы для нужной пары и нужного дня недели
-                Element element = document.getElementById(elementId);
-                if (element != null) {
-                    schedule.add(element.text());
-                } else {
-                    schedule.add(""); // Добавляем пустую строку, если пара отсутствует
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return schedule;
+    public void showSessionLayout() {
+        scheduleLayout.setVisibility(View.GONE);
+        scheduleTable.setVisibility(View.GONE);
+        switchLayout.setVisibility(View.GONE);
+        loadsessionLayout.setVisibility(View.GONE);
+        sessionLayout.setVisibility(View.VISIBLE);
     }
 
     private TableRow createSessionRow(String date, String time, String info) {
@@ -705,8 +513,6 @@ public class MainActivity extends AppCompatActivity {
         return sessionData;
     }
 
-
-
     private void createSessionRows(List<String> sessionData) {
         sessionTable.removeAllViews();
 
@@ -718,118 +524,7 @@ public class MainActivity extends AppCompatActivity {
         sessionLayout.setVisibility(View.VISIBLE);
     }
 
-    private class ParseFacultiesThread extends Thread {
-        @Override
-        public void run() {
-            final List<String> faculties = parseFaculties();
-
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this, android.R.layout.simple_spinner_item, faculties);
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    facultySpinner.setAdapter(adapter);
-                }
-            });
-        }
-    }
-
-    private class ParseGroupsThread extends Thread {
-        private String faculty;
-
-        public ParseGroupsThread(String faculty) {
-            this.faculty = faculty;
-        }
-
-        @Override
-        public void run() {
-            final List<String> groups = parseGroups(faculty);
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    List<String> courses = new ArrayList<>();
-                    char lastCourse = (groups.get(groups.size() - 1)).charAt(0);
-                    int courseQuantity = 2;
-                    while (!Character.isDigit(lastCourse)) {
-                        lastCourse = (groups.get(groups.size() - courseQuantity)).charAt(0);
-                        courseQuantity++;
-                    }
-                    for (int i = 0; i < Character.getNumericValue(lastCourse); i++){
-                        int k = i + 1;
-                        String numberOfCourse = String.valueOf(k);
-                        String course = numberOfCourse + " курс";
-                        courses.add(i, course);
-                    }
-                    ArrayAdapter<String> courseAdapter = new ArrayAdapter<>(MainActivity.this,
-                            android.R.layout.simple_spinner_item, courses);
-                    courseAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                    courseSpinner.setAdapter(courseAdapter);
-
-                    courseSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                        @Override
-                        public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                            List<String> currentGroups = new ArrayList<>();
-                            for (int i = 0; i < groups.size(); i++){
-                                if (groups.get(i).charAt(0) == courseSpinner.getSelectedItem().toString().charAt(0)) {
-                                    currentGroups.add(groups.get(i));
-                                }
-                            }
-                            ArrayAdapter<String> adapter = new ArrayAdapter<>(MainActivity.this,
-                                    android.R.layout.simple_spinner_item, currentGroups);
-                            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                            groupSpinner.setAdapter(adapter);
-                        }
-
-                        @Override
-                        public void onNothingSelected(AdapterView<?> parent) {
-                            // Нет действий при сбросе выбора
-                        }
-                    });
-                }
-            });
-        }
-    }
-
-    private class ParseScheduleThread extends Thread {
-        private String scheduleUrl;
-
-        public ParseScheduleThread(String scheduleUrl) {
-            this.scheduleUrl = scheduleUrl;
-        }
-
-        @Override
-        public void run() {
-            ArrayList<String> schedule = new ArrayList<>();
-            if (savedSchedules.get(currentDayOfWeek - 1).isEmpty())
-                schedule = parseSchedule(scheduleUrl);
-            else
-                schedule = savedSchedules.get(currentDayOfWeek - 1);
-
-            ArrayList<String> finalSchedule = schedule;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
-                    // Обновить текст в lessons
-                    for (int i = 0; i < lessons.length; i++) {
-                        if (i < finalSchedule.size()) {
-                            lessons[i].setText(finalSchedule.get(i));
-                        } else {
-                            lessons[i].setText("");
-                        }
-                    }
-                    // Сохраняем список schedule после его первого получения
-                    if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
-                        for (int i = 0; i < 8; i++){
-                            savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
-                        }
-                    }
-                }
-            });
-        }
-    }
-
-    private class ParseSessionThread extends Thread {
+    public class ParseSessionThread extends Thread {
         private Document sessionDoc;
 
         public ParseSessionThread(Document sessionDoc) {
