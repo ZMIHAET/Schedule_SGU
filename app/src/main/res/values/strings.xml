@@ -5,8 +5,8 @@
     <string name="choose_gr"><u>Выберите группу</u></string>
     <string name="prev_button"><![CDATA[<]]></string>
     <string name="next_button"><![CDATA[>]]></string>
-    <string name="znam">знам</string>
-    <string name="num">числ</string>
+    <string name="znam">З</string>
+    <string name="num">Ч</string>
     <string name="lec">лек</string>
     <string name="pr">пр</string>
     <string name="lab">лаб</string>
