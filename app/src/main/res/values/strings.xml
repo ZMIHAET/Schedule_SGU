@@ -15,4 +15,12 @@
     <string name="SGU_schedule">Расписание занятий СГУ</string>
     <string name="btn_load_schedule">Загрузить новое расписание</string>
     <string name="btn_show_schedule">Показать расписание</string>
+    <string name="firstName">Имя</string>
+    <string name="lastName">Фамилия</string>
+    <string name="patronymic">Отчество</string>
+    <string name="password">Пароль</string>
+    <string name="student">Студент</string>
+    <string name="teacher">Преподаватель</string>
+    <string name="enter">Войти</string>
+    <string name="registration">Регистрация</string>
 </resources>

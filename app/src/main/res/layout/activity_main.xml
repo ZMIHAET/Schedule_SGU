@@ -16,7 +16,8 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="50dp"> <!-- Уменьшил отступ -->
+        android:layout_marginTop="50dp"
+        android:visibility="visible"> <!-- Уменьшил отступ -->
 
         <Button
             android:id="@+id/btn_show_schedule"

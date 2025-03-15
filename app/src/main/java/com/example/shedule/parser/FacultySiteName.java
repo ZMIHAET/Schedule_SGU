@@ -1,4 +1,4 @@
-package com.example.shedule;
+package com.example.shedule.parser;
 
 public class FacultySiteName {
     public String showFacultyName(String facultyRuName){

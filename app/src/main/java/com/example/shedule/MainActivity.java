@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -17,6 +16,7 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.example.shedule.parser.FacultySiteName;
 import com.example.shedule.parser.LoadSessionThread;
 import com.example.shedule.parser.ParseFacultiesThread;
 import com.example.shedule.parser.ParseGroupsThread;
@@ -28,42 +28,21 @@ import java.util.ArrayList;
 import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnShowSchedule;
-    private Button btnLoadSchedule;
-    private Spinner facultySpinner;
-    private Spinner groupSpinner;
-    private Spinner courseSpinner;
-    private Button loadButton;
-    private ArrayAdapter<String> scheduleAdapter;
+    private Button btnShowSchedule, btnLoadSchedule, loadButton, prevDayButton, nextDayButton,
+            znamButton, numButton, loadSession, backButton, returnButton;
+    private Spinner facultySpinner, groupSpinner, courseSpinner;
     private TextView dayOfWeekText;
-    private Button prevDayButton;
-    private Button nextDayButton;
-    private Button znamButton;
-    private Button numButton;
-    private Button loadSession;
-    private Button backButton;
-    private Button returnButton;
-    private SwitchCompat switchLek;
-    private SwitchCompat switchPr;
-    private SwitchCompat switchLab;
-    private int currentDayOfWeek = 1;
-    private LinearLayout buttonsLayout;
-    private LinearLayout loadLayout;
-    private LinearLayout scheduleLayout;
-    private LinearLayout switchLayout;
-    private LinearLayout loadsessionLayout;
-    private TableLayout sessionTable;
-    private LinearLayout sessionLayout;
-    private TableLayout scheduleTable;
+    private SwitchCompat switchLek, switchPr, switchLab;
+    private int currentDayOfWeek = 1, fadedColor;
+    private LinearLayout buttonsLayout, loadLayout, scheduleLayout, switchLayout,
+            loadsessionLayout, sessionLayout;
+    private TableLayout sessionTable, scheduleTable;
     private TextView[] lessons;
     private boolean firstParse = false;
     private List<ArrayList<String>> savedSchedules = new ArrayList<>();
     private List<String> savedSessionData = new ArrayList<>();
     private Document savedSessionDoc;
-    private int originalColor;
-    private int fadedColor;
     private FacultySiteName facultySiteName;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        originalColor = Color.argb(255, 103, 80, 164);
+        //int originalColor = Color.argb(255, 103, 80, 164);
         fadedColor = Color.argb(255, 105, 104, 104);
 
         final boolean[] isLessonVisibleZnam = {true};
@@ -147,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         switchPr.setChecked(true);
         switchLab.setChecked(true);
 
-        scheduleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<String>());
+        //ArrayAdapter<String> scheduleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
 
         new ParseFacultiesThread(this, facultySpinner).start();
 
