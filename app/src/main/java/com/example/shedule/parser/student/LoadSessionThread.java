@@ -1,4 +1,4 @@
-package com.example.shedule.parser;
+package com.example.shedule.parser.student;
 
 import android.os.Handler;
 import android.os.Looper;

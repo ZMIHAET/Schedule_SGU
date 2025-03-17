@@ -16,11 +16,11 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
-import com.example.shedule.parser.FacultySiteName;
-import com.example.shedule.parser.LoadSessionThread;
-import com.example.shedule.parser.ParseFacultiesThread;
-import com.example.shedule.parser.ParseGroupsThread;
-import com.example.shedule.parser.ParseScheduleThread;
+import com.example.shedule.parser.student.FacultySiteName;
+import com.example.shedule.parser.student.LoadSessionThread;
+import com.example.shedule.parser.student.ParseFacultiesThread;
+import com.example.shedule.parser.student.ParseGroupsThread;
+import com.example.shedule.parser.student.ParseScheduleThread;
 
 import org.jsoup.nodes.Document;
 
@@ -28,13 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
-    private Button btnShowSchedule, btnLoadSchedule, loadButton, prevDayButton, nextDayButton,
+    private Button loadButton, prevDayButton, nextDayButton,
             znamButton, numButton, loadSession, backButton, returnButton;
     private Spinner facultySpinner, groupSpinner, courseSpinner;
     private TextView dayOfWeekText;
     private SwitchCompat switchLek, switchPr, switchLab;
     private int currentDayOfWeek = 1, fadedColor;
-    private LinearLayout buttonsLayout, loadLayout, scheduleLayout, switchLayout,
+    private LinearLayout loadLayout, scheduleLayout, switchLayout,
             loadsessionLayout, sessionLayout;
     private TableLayout sessionTable, scheduleTable;
     private TextView[] lessons;
@@ -50,9 +50,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        buttonsLayout = findViewById(R.id.buttons_layout);
-        btnShowSchedule = findViewById(R.id.btn_show_schedule);
-        btnLoadSchedule = findViewById(R.id.btn_load_schedule);
         facultySpinner = findViewById(R.id.faculty_spinner);
         groupSpinner = findViewById(R.id.group_spinner);
         courseSpinner = findViewById(R.id.course_spinner);
@@ -77,11 +74,6 @@ public class MainActivity extends AppCompatActivity {
         returnButton = findViewById(id.return_button);
         facultySiteName = new FacultySiteName();
 
-        btnLoadSchedule.setOnClickListener(v -> {
-            Log.d("MainActivity", "Кнопка была нажата");
-            buttonsLayout.setVisibility(View.GONE);
-            loadLayout.setVisibility(View.VISIBLE);
-        });
 
         // Инициализировать массив lessons
 
@@ -99,23 +91,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-        btnShowSchedule.setOnClickListener(v -> {
-            buttonsLayout.setVisibility(View.INVISIBLE);
-            // делаем видимым schedule_layout, switch_layout и schedule_table
-            scheduleLayout.setVisibility(View.VISIBLE);
-            scheduleTable.setVisibility(View.VISIBLE);
-            dayOfWeekText.setVisibility(View.VISIBLE);
-            switchLayout.setVisibility(View.VISIBLE);
-            loadsessionLayout.setVisibility(View.VISIBLE);
-            numButton.setBackgroundResource(android.R.drawable.btn_default);
-            znamButton.setBackgroundResource(android.R.drawable.btn_default);
-            switchLek.setChecked(true);
-            switchPr.setChecked(true);
-            switchLab.setChecked(true);
-            Log.d("MainActivity", "Расписание показано!");
-
-
-        });
 
         //int originalColor = Color.argb(255, 103, 80, 164);
         fadedColor = Color.argb(255, 105, 104, 104);

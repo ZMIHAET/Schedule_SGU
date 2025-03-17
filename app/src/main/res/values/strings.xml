@@ -23,4 +23,6 @@
     <string name="teacher">Преподаватель</string>
     <string name="enter">Войти</string>
     <string name="registration">Регистрация</string>
+    <string name="load_own_schedule">Загрузить своё расписание</string>
+    <string name="choose_teacher"><u>Выберите преподавателя</u></string>
 </resources>
