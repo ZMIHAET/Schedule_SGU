@@ -1,4 +1,4 @@
-package com.example.shedule.auth;
+package com.example.shedule.activity.auth;
 
 import org.mindrot.jbcrypt.BCrypt;
 

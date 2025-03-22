@@ -17,7 +17,7 @@
 
         <!-- Теперь LoginActivity — стартовый экран -->
         <activity
-            android:name=".auth.LoginActivity"
+            android:name=".activity.auth.LoginActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,17 +27,17 @@
 
         <!-- MainActivity (студентский экран) -->
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.student.MainActivity"
             android:exported="true" />
 
         <!-- Экран преподавателя -->
         <activity
-            android:name=".TeacherActivity"
+            android:name=".activity.teacher.TeacherActivity"
             android:exported="true" />
 
         <!-- Экран регистрации -->
         <activity
-            android:name=".auth.RegisterActivity"
+            android:name=".activity.auth.RegisterActivity"
             android:exported="true" />
 
     </application>

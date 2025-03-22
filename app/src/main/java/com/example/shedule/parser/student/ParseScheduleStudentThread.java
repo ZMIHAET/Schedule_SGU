@@ -13,19 +13,19 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 
-public class ParseScheduleThread extends Thread {
+public class ParseScheduleStudentThread extends Thread {
     private final Activity activity;
     private final String scheduleUrl;
     private final List<ArrayList<String>> savedSchedules;
-    private int currentDayOfWeek;
+    private final int currentDayOfWeek;
     private final String[] daysOfWeek = {"", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"};
     private final TextView dayOfWeekText;
     private final TextView[] lessons;
     private final Calendar calendar = Calendar.getInstance();
 
-    public ParseScheduleThread(Activity activity, String scheduleUrl,
-                               List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
-                               TextView dayOfWeekText, TextView[] lessons) {
+    public ParseScheduleStudentThread(Activity activity, String scheduleUrl,
+                                      List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
+                                      TextView dayOfWeekText, TextView[] lessons) {
         this.activity = activity;
         this.scheduleUrl = scheduleUrl;
         this.savedSchedules = savedSchedules;
@@ -43,23 +43,20 @@ public class ParseScheduleThread extends Thread {
             schedule = savedSchedules.get(currentDayOfWeek - 1);
 
         ArrayList<String> finalSchedule = schedule;
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
-                // Обновить текст в lessons
-                for (int i = 0; i < lessons.length; i++) {
-                    if (i < finalSchedule.size()) {
-                        lessons[i].setText(finalSchedule.get(i));
-                    } else {
-                        lessons[i].setText("");
-                    }
+        activity.runOnUiThread(() -> {
+            dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
+            // Обновить текст в lessons
+            for (int i = 0; i < lessons.length; i++) {
+                if (i < finalSchedule.size()) {
+                    lessons[i].setText(finalSchedule.get(i));
+                } else {
+                    lessons[i].setText("");
                 }
-                // Сохраняем список schedule после его первого получения
-                if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
-                    for (int i = 0; i < 8; i++){
-                        savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
-                    }
+            }
+            // Сохраняем список schedule после его первого получения
+            if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
+                for (int i = 0; i < 8; i++){
+                    savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
                 }
             }
         });
@@ -84,9 +81,10 @@ public class ParseScheduleThread extends Thread {
 
                     for (Element lessonElement : lessonElements) {
                         String type = lessonElement.selectFirst("div.schedule-table__lesson-props div") != null
-                                ? lessonElement.selectFirst("div.schedule-table__lesson-props div").text() : "Не указано";
+                                ? lessonElement.selectFirst("div.schedule-table__lesson-props div").text() : "Не указан тип";
                         String lessonName = lessonElement.selectFirst("div.schedule-table__lesson-name").text();
-                        String teacher = lessonElement.selectFirst("div.schedule-table__lesson-teacher span, div.schedule-table__lesson-teacher a").text();
+                        String teacher = lessonElement.selectFirst("div.schedule-table__lesson-teacher span, div.schedule-table__lesson-teacher a") != null
+                                ? lessonElement.selectFirst("div.schedule-table__lesson-teacher span, div.schedule-table__lesson-teacher a").text(): "Не указан преподаватель";
                         String room = lessonElement.selectFirst("div.schedule-table__lesson-room span").text();
                         String weekType = lessonElement.selectFirst("div.lesson-prop__num") != null ? "Ч" :
                                 lessonElement.selectFirst("div.lesson-prop__denom") != null ? "З" : "";
@@ -114,4 +112,3 @@ public class ParseScheduleThread extends Thread {
     }
 
 }
-

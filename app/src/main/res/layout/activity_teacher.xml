@@ -43,7 +43,7 @@
             android:layout_height="50dp" />
 
         <Button
-            android:id="@+id/load_button"
+            android:id="@+id/load_teacher_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="50dp"
@@ -60,5 +60,370 @@
 
     </LinearLayout>
 
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/schedule_scroll_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/load_layout"
+        app:layout_constraintBottom_toTopOf="@id/bottom_layout"
+        app:layout_constraintVertical_weight="1">
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+        <TableLayout
+            android:id="@+id/schedule_table"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:stretchColumns="1"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/day_of_week_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text=""
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:padding="8dp"/>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border_full"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_1"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_with_up"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson1"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_2"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson2"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_3"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson3"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_4"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson4"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_5"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson5"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_6"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson6"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_7"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson7"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+            <TableRow>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/cell_border"
+                    android:gravity="right"
+                    android:padding="8dp"
+                    android:text="@string/lesson_8"
+                    android:textColor="@color/text_color" />
+
+                <androidx.core.widget.NestedScrollView
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:fillViewport="true"
+                    android:background="@drawable/cell_border_no_left"
+                    android:padding="3dp">
+                    <TextView
+                        android:id="@+id/lesson8"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:padding="8dp"
+                        android:layout_gravity="fill_vertical"
+                        android:textColor="@color/text_color" />
+                </androidx.core.widget.NestedScrollView>
+            </TableRow>
+
+        </TableLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/bottom_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintTop_toBottomOf="@id/schedule_scroll_view"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+
+        <LinearLayout
+            android:id="@+id/schedule_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            app:layout_constraintBottom_toTopOf="@+id/switch_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            android:visibility="gone"
+            >
+
+            <Button
+                android:id="@+id/prev_day_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/prev_button" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/znam_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/znam" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/num_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/num" />
+
+            <Button
+                android:id="@+id/next_day_button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="@string/next_button" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/switch_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintBottom_toTopOf="@+id/load_session_layout"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintVertical_chainStyle="packed"
+            android:visibility="gone">
+
+            <Button
+                android:id="@+id/return_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Назад" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_lek"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/lec" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_pr"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/pr"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp" />
+
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch_lab"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lab"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/load_session_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="0dp"
+            android:gravity="center"
+            android:visibility="gone"
+            app:layout_constraintTop_toBottomOf="@+id/switch_layout"
+            app:layout_constraintVertical_chainStyle="spread">
+
+            <Button
+                android:id="@+id/load_session"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="@string/session" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>

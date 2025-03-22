@@ -19,7 +19,9 @@ public class TeacherParserThread extends Thread {
     private final String baseUrl;
     private final Spinner facSpinner, teacherSpinner;
     private List<String> facultyList = new ArrayList<>();
-    private HashMap<String, List<String>> facultyTeachersMap = new HashMap<>();
+    private final HashMap<String, List<String>> facultyTeachersMap = new HashMap<>();
+    private final HashMap<String, String> teacherHrefMap = new HashMap<>(); // Для хранения ссылок
+
 
     public TeacherParserThread(Activity activity, String baseUrl, Spinner facSpinner, Spinner teacherSpinner) {
         this.activity = activity;
@@ -93,11 +95,20 @@ public class TeacherParserThread extends Thread {
                 if (teacherNameElement != null && facultyNameElement != null) {
                     String teacherName = teacherNameElement.text();
                     String facultyName = facultyNameElement.text();
+                    String teacherHref = teacherNameElement.attr("href"); // Получаем href
+
                     facultyTeachersMap.computeIfAbsent(facultyName, k -> new ArrayList<>()).add(teacherName);
+
+                    teacherHrefMap.put(teacherName, teacherHref); // Сохраняем href преподавателя
                 }
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
+    public String getTeacherHref(String teacherName){
+        return teacherHrefMap.get(teacherName);
+    }
+
 }

@@ -1,4 +1,4 @@
-package com.example.shedule;
+package com.example.shedule.activity.student;
 
 import static com.example.shedule.R.*;
 
@@ -16,11 +16,12 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import com.example.shedule.R;
 import com.example.shedule.parser.student.FacultySiteName;
 import com.example.shedule.parser.student.LoadSessionThread;
 import com.example.shedule.parser.student.ParseFacultiesThread;
 import com.example.shedule.parser.student.ParseGroupsThread;
-import com.example.shedule.parser.student.ParseScheduleThread;
+import com.example.shedule.parser.student.ParseScheduleStudentThread;
 
 import org.jsoup.nodes.Document;
 
@@ -35,10 +36,9 @@ public class MainActivity extends AppCompatActivity {
     private SwitchCompat switchLek, switchPr, switchLab;
     private int currentDayOfWeek = 1, fadedColor;
     private LinearLayout loadLayout, scheduleLayout, switchLayout,
-            loadsessionLayout, sessionLayout;
+            loadSessionLayout, sessionLayout;
     private TableLayout sessionTable, scheduleTable;
     private TextView[] lessons;
-    private boolean firstParse = false;
     private List<ArrayList<String>> savedSchedules = new ArrayList<>();
     private List<String> savedSessionData = new ArrayList<>();
     private Document savedSessionDoc;
@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
         scheduleLayout = findViewById(R.id.schedule_layout);
         scheduleTable = findViewById(R.id.schedule_table);
         switchLayout = findViewById(R.id.switch_layout);
-        loadsessionLayout = findViewById(R.id.load_session_layout);
+        loadSessionLayout = findViewById(R.id.load_session_layout);
         sessionLayout = findViewById(id.session_layout);
         sessionTable = findViewById(R.id.session_table);
         backButton = findViewById(R.id.back_button);
@@ -101,10 +101,7 @@ public class MainActivity extends AppCompatActivity {
         switchPr.setChecked(true);
         switchLab.setChecked(true);
 
-        //ArrayAdapter<String> scheduleAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, new ArrayList<>());
-
         new ParseFacultiesThread(this, facultySpinner).start();
-
 
         facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
@@ -127,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
             scheduleLayout.setVisibility(View.VISIBLE);
             scheduleTable.setVisibility(View.VISIBLE);
             switchLayout.setVisibility(View.VISIBLE);
-            loadsessionLayout.setVisibility(View.VISIBLE);
+            loadSessionLayout.setVisibility(View.VISIBLE);
             numButton.setBackgroundResource(android.R.drawable.btn_default);
             znamButton.setBackgroundResource(android.R.drawable.btn_default);
             switchLek.setChecked(true);
@@ -331,7 +328,7 @@ public class MainActivity extends AppCompatActivity {
             scheduleLayout.setVisibility(View.VISIBLE);
             scheduleTable.setVisibility(View.VISIBLE);
             switchLayout.setVisibility(View.VISIBLE);
-            loadsessionLayout.setVisibility(View.VISIBLE);
+            loadSessionLayout.setVisibility(View.VISIBLE);
             sessionLayout.setVisibility(View.GONE);
         });
 
@@ -342,12 +339,11 @@ public class MainActivity extends AppCompatActivity {
             }
             savedSessionDoc = new Document("");
             savedSessionData.clear();
-            firstParse = false;
             dayOfWeekText.setVisibility(View.GONE);
             scheduleLayout.setVisibility(View.GONE);
             scheduleTable.setVisibility(View.GONE);
             switchLayout.setVisibility(View.GONE);
-            loadsessionLayout.setVisibility(View.GONE);
+            loadSessionLayout.setVisibility(View.GONE);
             loadLayout.setVisibility(View.VISIBLE);
         });
     }
@@ -359,9 +355,10 @@ public class MainActivity extends AppCompatActivity {
         String faculty = facultySpinner.getSelectedItem().toString();
         String group = groupSpinner.getSelectedItem().toString();
         Log.d("faculty", faculty);
+
         String facultyUrl = facultySiteName.showFacultyName(faculty);
         String scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
-        new ParseScheduleThread(MainActivity.this, scheduleUrl,
+        new ParseScheduleStudentThread(MainActivity.this, scheduleUrl,
                 savedSchedules, currentDayOfWeek, dayOfWeekText,
                 lessons).start();
         dayOfWeekText.setVisibility(View.VISIBLE);
@@ -373,7 +370,7 @@ public class MainActivity extends AppCompatActivity {
         scheduleLayout.setVisibility(View.GONE);
         scheduleTable.setVisibility(View.GONE);
         switchLayout.setVisibility(View.GONE);
-        loadsessionLayout.setVisibility(View.GONE);
+        loadSessionLayout.setVisibility(View.GONE);
         sessionLayout.setVisibility(View.VISIBLE);
     }
 }

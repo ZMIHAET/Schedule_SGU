@@ -9,7 +9,7 @@ import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.example.shedule.MainActivity;
+import com.example.shedule.activity.student.MainActivity;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;

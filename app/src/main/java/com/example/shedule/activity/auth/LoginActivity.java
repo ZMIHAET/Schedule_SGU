@@ -1,4 +1,4 @@
-package com.example.shedule.auth;
+package com.example.shedule.activity.auth;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -13,9 +13,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.shedule.DB.DatabaseHelper;
-import com.example.shedule.MainActivity;
+import com.example.shedule.activity.student.MainActivity;
 import com.example.shedule.R;
-import com.example.shedule.TeacherActivity;
+import com.example.shedule.activity.teacher.TeacherActivity;
 
 public class LoginActivity extends AppCompatActivity {
 
