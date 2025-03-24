@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
@@ -72,14 +73,19 @@ public class LoginActivity extends AppCompatActivity {
 
             if (PasswordHasher.checkPassword(password, storedPassword)) {
                 if (selectedRole.equals(storedRole)) {
-                    Intent intent = selectedRole.equals("Студент") ?
-                            new Intent(this, MainActivity.class) :
-                            new Intent(this, TeacherActivity.class);
-                    startActivity(intent);
+                    if (selectedRole.equals("Студент")) {
+                        Intent intent = new Intent(this, MainActivity.class);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(this, TeacherActivity.class);
+                        intent.putExtra("fullName", lastName + " " + firstName + " " + patronymic);
+                        startActivity(intent);
+                    }
                     finish();
                 } else {
                     Toast.makeText(this, "Неверная роль", Toast.LENGTH_SHORT).show();
                 }
+
             } else {
                 Toast.makeText(this, "Неверный пароль", Toast.LENGTH_SHORT).show();
             }
@@ -89,5 +95,7 @@ public class LoginActivity extends AppCompatActivity {
 
         cursor.close();
         db.close();
+
     }
+
 }

@@ -18,7 +18,7 @@ import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.shedule.R;
 import com.example.shedule.parser.student.FacultySiteName;
-import com.example.shedule.parser.student.LoadSessionThread;
+import com.example.shedule.parser.student.LoadSessionStudentThread;
 import com.example.shedule.parser.student.ParseFacultiesThread;
 import com.example.shedule.parser.student.ParseGroupsThread;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
@@ -319,7 +319,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loadSession.setOnClickListener(v ->
-                new LoadSessionThread(facultySpinner, groupSpinner, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start()
+                new LoadSessionStudentThread(facultySpinner, groupSpinner, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start()
         );
 
 

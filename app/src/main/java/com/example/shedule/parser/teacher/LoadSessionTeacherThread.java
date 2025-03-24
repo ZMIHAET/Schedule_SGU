@@ -1,15 +1,14 @@
-package com.example.shedule.parser.student;
+package com.example.shedule.parser.teacher;
 
 import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
 
-import com.example.shedule.activity.student.MainActivity;
+import com.example.shedule.activity.teacher.TeacherActivity;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -20,33 +19,23 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoadSessionThread extends Thread {
-    private final Spinner facultySpinner;
-    private final Spinner groupSpinner;
+public class LoadSessionTeacherThread extends Thread{
     private Document savedSessionDoc;
-    private final MainActivity mainActivity;
-    private final FacultySiteName facultySiteName;
+    private final TeacherActivity teacherActivity;
     private final TableLayout sessionTable;
     private final LinearLayout sessionLayout;
+    private final String sessionUrl;
 
-    public LoadSessionThread(Spinner facultySpinner, Spinner groupSpinner, Document savedSessionDoc,
-                             MainActivity mainActivity, TableLayout sessionTable, LinearLayout sessionLayout) {
-        this.facultySpinner = facultySpinner;
-        this.groupSpinner = groupSpinner;
-        this.savedSessionDoc = savedSessionDoc;
-        this.mainActivity = mainActivity;
-        this.facultySiteName = new FacultySiteName();
+    public LoadSessionTeacherThread(TeacherActivity teacherActivity, TableLayout sessionTable, LinearLayout sessionLayout, String sessionUrl) {
+        this.teacherActivity = teacherActivity;
         this.sessionTable = sessionTable;
         this.sessionLayout = sessionLayout;
+        this.sessionUrl = sessionUrl;
     }
 
 
     @Override
     public void run() {
-        String faculty = facultySpinner.getSelectedItem().toString();
-        String group = groupSpinner.getSelectedItem().toString();
-        String facultyUrl = facultySiteName.showFacultyName(faculty);
-        String sessionUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
 
         Document sessionDoc;
         try {
@@ -69,10 +58,9 @@ public class LoadSessionThread extends Thread {
         // Обновляем UI в главном потоке
         new Handler(Looper.getMainLooper()).post(() -> {
             createSessionRows(sessionData);
-            mainActivity.showSessionLayout();
+            teacherActivity.showSessionLayout();
         });
     }
-
     private List<String> parseSession(Document doc) {
         List<String> sessionData = new ArrayList<>();
 
@@ -100,14 +88,14 @@ public class LoadSessionThread extends Thread {
             String examType = cells.get(1).selectFirst(".schedule-form") != null ? cells.get(1).selectFirst(".schedule-form").text() : "";
             String subject = cells.get(1).selectFirst(".schedule-discipline") != null ? cells.get(1).selectFirst(".schedule-discipline").text() : "";
 
-            // Извлекаем преподавателя
-            String teacher = cells.get(2).text().trim();
+            // Извлекаем группу и подразделение
+            String groupAndFac = cells.get(2).text().trim();
 
             // Извлекаем аудиторию
             String location = cells.get(3).text().trim();
 
             // Формируем строку с информацией о предмете
-            String info = examType + ": " + subject + "\nПреподаватель: " + teacher + "\nАудитория: " + location;
+            String info = examType + ": " + subject + "\nГруппа/Подразделение: " + groupAndFac + "\nАудитория: " + location;
 
             // Добавляем в список
             sessionData.add(date);
@@ -119,20 +107,20 @@ public class LoadSessionThread extends Thread {
     }
 
     private TableRow createSessionRow(String date, String time, String info) {
-        TableRow row = new TableRow(mainActivity);
+        TableRow row = new TableRow(teacherActivity);
         row.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
 
-        TextView dateTextView = new TextView(mainActivity);
+        TextView dateTextView = new TextView(teacherActivity);
         dateTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
         dateTextView.setText(date);
         row.addView(dateTextView);
 
-        TextView timeTextView = new TextView(mainActivity);
+        TextView timeTextView = new TextView(teacherActivity);
         timeTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
         timeTextView.setText(time);
         row.addView(timeTextView);
 
-        TextView infoTextView = new TextView(mainActivity);
+        TextView infoTextView = new TextView(teacherActivity);
         infoTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2));
         infoTextView.setText(info);
         row.addView(infoTextView);
@@ -150,5 +138,4 @@ public class LoadSessionThread extends Thread {
 
         sessionLayout.setVisibility(View.VISIBLE);
     }
-
 }

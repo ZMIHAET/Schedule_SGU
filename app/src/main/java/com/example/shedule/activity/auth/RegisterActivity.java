@@ -77,12 +77,7 @@ public class RegisterActivity extends AppCompatActivity {
             Toast.makeText(this, "Ошибка регистрации", Toast.LENGTH_SHORT).show();
         } else {
             Toast.makeText(this, "Регистрация успешна", Toast.LENGTH_SHORT).show();
-            Intent intent;
-            if (role.equals("Студент")) {
-                intent = new Intent(this, MainActivity.class);
-            } else {
-                intent = new Intent(this, TeacherActivity.class);
-            }
+            Intent intent = new Intent(this, LoginActivity.class);
             startActivity(intent);
             finish();
         }

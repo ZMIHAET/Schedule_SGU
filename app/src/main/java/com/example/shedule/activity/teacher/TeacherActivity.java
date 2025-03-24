@@ -2,6 +2,7 @@ package com.example.shedule.activity.teacher;
 
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -13,7 +14,9 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.shedule.R;
+import com.example.shedule.activity.auth.LoginActivity;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
+import com.example.shedule.parser.teacher.LoadSessionTeacherThread;
 import com.example.shedule.parser.teacher.ParseScheduleTeacherThread;
 import com.example.shedule.parser.teacher.TeacherParserThread;
 
@@ -26,13 +29,15 @@ public class TeacherActivity extends AppCompatActivity {
 
     private Spinner facSpinner, teacherSpinner;
     private LinearLayout loadLayout, scheduleLayout, switchLayout,
-    loadSessionLayout;
+    loadSessionLayout, sessionLayout;
     private TableLayout sessionTable, scheduleTable;
-    private Button loadButton, prevDayButton, nextDayButton,
+    private Button loadButton, loadOwnButton, prevDayButton, nextDayButton,
             znamButton, numButton, loadSession, returnButton;
     private SwitchCompat switchLek, switchPr, switchLab;
     private TextView dayOfWeekText;
     private int currentDayOfWeek = 1, fadedColor;
+
+    private boolean isOwnSchedule = false;
 
     private TextView[] lessons;
     private List<ArrayList<String>> savedSchedules = new ArrayList<>();
@@ -56,9 +61,15 @@ public class TeacherActivity extends AppCompatActivity {
 
 
         loadLayout = findViewById(R.id.load_layout);
+        loadOwnButton = findViewById(R.id.load_own_button);
         scheduleLayout = findViewById(R.id.schedule_layout);
         switchLayout = findViewById(R.id.switch_layout);
         loadSessionLayout = findViewById(R.id.load_session_layout);
+
+        sessionLayout = findViewById(R.id.session_layout);
+        sessionTable = findViewById(R.id.session_table);
+        loadSession = findViewById(R.id.load_session);
+
         scheduleTable = findViewById(R.id.schedule_table);
         facSpinner = findViewById(R.id.fac_spinner);
         teacherSpinner = findViewById(R.id.teacher_spinner);
@@ -70,13 +81,13 @@ public class TeacherActivity extends AppCompatActivity {
         prevDayButton = findViewById(R.id.prev_day_button);
         nextDayButton = findViewById(R.id.next_day_button);
         returnButton = findViewById(R.id.return_button);
-        loadSession = findViewById(R.id.load_session);
         dayOfWeekText = findViewById(R.id.day_of_week_text);
 
 
         switchLab = findViewById(R.id.switch_lab);
         switchLek = findViewById(R.id.switch_lek);
         switchPr = findViewById(R.id.switch_pr);
+
 
 
         // Инициализация массива lessons
@@ -102,6 +113,7 @@ public class TeacherActivity extends AppCompatActivity {
         switchPr.setChecked(true);
         switchLab.setChecked(true);
 
+
         // Загружаем данные в новом потоке
         new Thread(() -> {
             teacherParserThread = new TeacherParserThread(this, baseUrl + "/schedule", facSpinner, teacherSpinner);
@@ -110,20 +122,16 @@ public class TeacherActivity extends AppCompatActivity {
         }).start();
 
         loadButton.setOnClickListener(v -> {
-            loadLayout.setVisibility(View.GONE);
+            switchToSchedule();
 
-            scheduleLayout.setVisibility(View.VISIBLE);
-            scheduleTable.setVisibility(View.VISIBLE);
-            switchLayout.setVisibility(View.VISIBLE);
-            loadSessionLayout.setVisibility(View.VISIBLE);
-            numButton.setBackgroundResource(android.R.drawable.btn_default);
-            znamButton.setBackgroundResource(android.R.drawable.btn_default);
-            switchLek.setChecked(true);
-            switchPr.setChecked(true);
-            switchLab.setChecked(true);
+            scheduleGenerator();
+        });
 
+        loadOwnButton.setOnClickListener(v -> {
+            switchToSchedule();
+            isOwnSchedule = true;
 
-            ScheduleGenerator();
+            scheduleGenerator();
         });
 
         prevDayButton.setOnClickListener(v -> {
@@ -137,7 +145,7 @@ public class TeacherActivity extends AppCompatActivity {
                 currentDayOfWeek = 6;
             }
             // выводим расписание
-            ScheduleGenerator();
+            scheduleGenerator();
         });
 
         nextDayButton.setOnClickListener(v -> {
@@ -151,7 +159,7 @@ public class TeacherActivity extends AppCompatActivity {
                 currentDayOfWeek = 1;
             }
             // выводим расписание
-            ScheduleGenerator();
+            scheduleGenerator();
         });
 
 
@@ -280,7 +288,6 @@ public class TeacherActivity extends AppCompatActivity {
             }
         });
 
-
         switchLab.setOnClickListener(v -> {
             boolean isChecked = switchLab.isChecked();
             for (int i = 0; i < lessons.length; i++) {
@@ -308,11 +315,22 @@ public class TeacherActivity extends AppCompatActivity {
             }
         });
 
+        loadSession.setOnClickListener(v -> {
+            String teacher = !isOwnSchedule ? teacherSpinner.getSelectedItem().toString() :
+                    getIntent().getStringExtra("fullName");
+            String Url = baseUrl + teacherParserThread.getTeacherHref(teacher);
+            Log.d("Url", Url);
+
+            new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, Url).start();
+
+        });
+
         returnButton.setOnClickListener(v -> {
             savedSchedules.clear();
             for (int i = 0; i < 7; i++) {
                 savedSchedules.add(new ArrayList<>());
             }
+            isOwnSchedule = false;
             savedSessionDoc = new Document("");
             savedSessionData.clear();
             dayOfWeekText.setVisibility(View.GONE);
@@ -329,10 +347,26 @@ public class TeacherActivity extends AppCompatActivity {
         return savedLesson.contains("ЛЕКЦИЯ") && switchLek.isChecked() || savedLesson.contains("ПРАКТИКА") && switchPr.isChecked() || savedLesson.contains("ЛАБОРАТОРНАЯ") && switchLab.isChecked();
     }
 
+    private void switchToSchedule(){
+        loadLayout.setVisibility(View.GONE);
 
-    private void ScheduleGenerator(){
-        String teacher = teacherSpinner.getSelectedItem().toString();
+        scheduleLayout.setVisibility(View.VISIBLE);
+        scheduleTable.setVisibility(View.VISIBLE);
+        switchLayout.setVisibility(View.VISIBLE);
+        loadSessionLayout.setVisibility(View.VISIBLE);
+        numButton.setBackgroundResource(android.R.drawable.btn_default);
+        znamButton.setBackgroundResource(android.R.drawable.btn_default);
+        switchLek.setChecked(true);
+        switchPr.setChecked(true);
+        switchLab.setChecked(true);
+    }
+
+
+    private void scheduleGenerator(){
+        String teacher = !isOwnSchedule ? teacherSpinner.getSelectedItem().toString() :
+                getIntent().getStringExtra("fullName");
         String Url = baseUrl + teacherParserThread.getTeacherHref(teacher);
+        Log.d("Url", Url);
 
 
         new ParseScheduleTeacherThread(TeacherActivity.this, Url,
@@ -342,4 +376,13 @@ public class TeacherActivity extends AppCompatActivity {
         prevDayButton.setVisibility(View.VISIBLE);
         nextDayButton.setVisibility(View.VISIBLE);
     }
+
+    public void showSessionLayout() {
+        scheduleLayout.setVisibility(View.GONE);
+        scheduleTable.setVisibility(View.GONE);
+        switchLayout.setVisibility(View.GONE);
+        loadSessionLayout.setVisibility(View.GONE);
+        sessionLayout.setVisibility(View.VISIBLE);
+    }
+
 }
