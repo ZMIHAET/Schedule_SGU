@@ -33,4 +33,8 @@
     <string name="lesson_6">17:20\n18:40</string>
     <string name="lesson_7">18:45\n20:05</string>
     <string name="lesson_8">20:10\n21:30</string>
+    <string name="back">Назад</string>
+    <string name="student_schedule">Расписание студента</string>
+    <string name="teacher_schedule">Расписание преподавателей</string>
+    <string name="teachers_schedule">Расписание преподавателей</string>
 </resources>

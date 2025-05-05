@@ -2,6 +2,7 @@ package com.example.shedule.activity.student;
 
 import static com.example.shedule.R.*;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -17,11 +18,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
 import com.example.shedule.R;
+import com.example.shedule.activity.teacher.TeacherActivity;
 import com.example.shedule.parser.student.FacultySiteName;
 import com.example.shedule.parser.student.LoadSessionStudentThread;
 import com.example.shedule.parser.student.ParseFacultiesThread;
 import com.example.shedule.parser.student.ParseGroupsThread;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
+import com.example.shedule.parser.teacher.teacherId.TeacherIdCacheLoader;
 
 import org.jsoup.nodes.Document;
 
@@ -30,7 +33,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     private Button loadButton, prevDayButton, nextDayButton,
-            znamButton, numButton, loadSession, backButton, returnButton;
+            znamButton, numButton, loadSession, backButton, returnButton,
+    loadTeacherSchedule;
     private Spinner facultySpinner, groupSpinner, courseSpinner;
     private TextView dayOfWeekText;
     private SwitchCompat switchLek, switchPr, switchLab;
@@ -49,6 +53,8 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        // Запуск фоновой загрузки ID преподавателей
+        new TeacherIdCacheLoader().start();
 
         facultySpinner = findViewById(R.id.faculty_spinner);
         groupSpinner = findViewById(R.id.group_spinner);
@@ -72,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
         sessionTable = findViewById(R.id.session_table);
         backButton = findViewById(R.id.back_button);
         returnButton = findViewById(id.return_button);
+        loadTeacherSchedule = findViewById(R.id.load_teacher_schedule);
         facultySiteName = new FacultySiteName();
 
 
@@ -136,6 +143,12 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+        loadTeacherSchedule.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, TeacherActivity.class);
+            intent.putExtra("showLoadLayout", true); // передаем флаг
+            startActivity(intent);
+        });
+
         prevDayButton.setOnClickListener(v -> {
             numButton.setBackgroundResource(android.R.drawable.btn_default);
             znamButton.setBackgroundResource(android.R.drawable.btn_default);
@@ -170,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < lessons.length; i++) {
                 String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                 if (savedLesson.contains("З:")) {
-                    if (isLessonVisibleZnam[0] == false) {
+                    if (!isLessonVisibleZnam[0]) {
                         znamButton.setBackgroundColor(fadedColor);
                         if(!savedLesson.contains("Ч:"))
                             lessons[i].setText("");

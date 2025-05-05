@@ -1,6 +1,7 @@
 package com.example.shedule.parser.teacher;
 
 import android.app.Activity;
+import android.util.Log;
 import android.widget.TextView;
 
 import org.jsoup.Jsoup;
@@ -12,6 +13,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Objects;
 
 public class ParseScheduleTeacherThread extends Thread {
     private final Activity activity;
@@ -36,30 +38,33 @@ public class ParseScheduleTeacherThread extends Thread {
 
     @Override
     public void run() {
-        ArrayList<String> schedule;
-        if (savedSchedules.get(currentDayOfWeek - 1).isEmpty())
-            schedule = parseSchedule(scheduleUrl);
-        else
-            schedule = savedSchedules.get(currentDayOfWeek - 1);
-
-        ArrayList<String> finalSchedule = schedule;
-        activity.runOnUiThread(() -> {
-            dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
-            // Обновить текст в lessons
-            for (int i = 0; i < lessons.length; i++) {
-                if (i < finalSchedule.size()) {
-                    lessons[i].setText(finalSchedule.get(i));
-                } else {
-                    lessons[i].setText("");
-                }
-            }
-            // Сохраняем список schedule после его первого получения
+        if (!Objects.equals(scheduleUrl, "https://www.sgu.runull")) {
+            ArrayList<String> schedule;
             if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
-                for (int i = 0; i < 8; i++){
-                    savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
+                schedule = parseSchedule(scheduleUrl);
+                Log.d("CHECK", "aaaaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+            } else
+                schedule = savedSchedules.get(currentDayOfWeek - 1);
+
+            ArrayList<String> finalSchedule = schedule;
+            activity.runOnUiThread(() -> {
+                dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
+                // Обновить текст в lessons
+                for (int i = 0; i < lessons.length; i++) {
+                    if (i < finalSchedule.size()) {
+                        lessons[i].setText(finalSchedule.get(i));
+                    } else {
+                        lessons[i].setText("");
+                    }
                 }
-            }
-        });
+                // Сохраняем список schedule после его первого получения
+                if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
+                    for (int i = 0; i < 8; i++) {
+                        savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
+                    }
+                }
+            });
+        }
     }
 
     private ArrayList<String> parseSchedule(String scheduleUrl) {

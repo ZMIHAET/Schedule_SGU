@@ -13,9 +13,9 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.shedule.DB.DatabaseHelper;
-import com.example.shedule.activity.student.MainActivity;
 import com.example.shedule.R;
-import com.example.shedule.activity.teacher.TeacherActivity;
+import com.example.shedule.parser.teacher.checkTeachers.TeacherList;
+import com.example.shedule.parser.teacher.checkTeachers.TeacherParser;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -37,7 +37,14 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
 
         dbHelper = new DatabaseHelper(this);
+        btnRegister.setEnabled(false); // Заблокировать кнопку
 
+        new Thread(() -> {
+            TeacherParser.parseTeachers("https://www.sgu.ru/person");
+
+            // После парсинга включаем кнопку в UI-потоке
+            runOnUiThread(() -> btnRegister.setEnabled(true));
+        }).start();
         btnRegister.setOnClickListener(v -> registerUser());
     }
 
@@ -59,9 +66,23 @@ public class RegisterActivity extends AppCompatActivity {
             return;
         }
 
-        // Хэшируем пароль перед сохранением
-        String hashedPassword = PasswordHasher.hashPassword(password);
+        // Если роль "Преподаватель", парсим сайт и проверяем наличие
+        if (role.equalsIgnoreCase("Преподаватель")) {
+            String fullName = lastName + " " + firstName + " " + patronymic;
+            boolean isTeacherExists = TeacherList.containsTeacher(fullName);
+            if (!isTeacherExists) {
+                Toast.makeText(this, "Преподаватель не найден на сайте", Toast.LENGTH_LONG).show();
+                return;
+            }
+            saveUserToDatabase(firstName, lastName, patronymic, password, role);
+        } else {
+            saveUserToDatabase(firstName, lastName, patronymic, password, role);
+        }
+    }
 
+    // Отдельный метод для сохранения пользователя в БД
+    private void saveUserToDatabase(String firstName, String lastName, String patronymic, String password, String role) {
+        String hashedPassword = PasswordHasher.hashPassword(password);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_FIRST_NAME, firstName);
@@ -82,4 +103,5 @@ public class RegisterActivity extends AppCompatActivity {
             finish();
         }
     }
+
 }

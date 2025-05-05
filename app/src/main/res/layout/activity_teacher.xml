@@ -12,6 +12,7 @@
         android:layout_weight="1"
         android:gravity="center_horizontal"
         android:orientation="vertical"
+        android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent">
 
         <TextView
@@ -49,12 +50,12 @@
             android:layout_marginTop="50dp"
             android:text="@string/load_schedule" />
 
-        <Button
+<!--        <Button
             android:id="@+id/load_own_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="100dp"
-            android:text="@string/load_own_schedule" />
+            android:text="@string/load_own_schedule" />-->
 
 
 
@@ -73,7 +74,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:stretchColumns="1"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <TextView
                 android:id="@+id/day_of_week_text"
@@ -332,7 +333,7 @@
             app:layout_constraintBottom_toTopOf="@+id/switch_layout"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            android:visibility="gone"
+            android:visibility="visible"
             >
 
             <Button
@@ -374,7 +375,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintVertical_chainStyle="packed"
-            android:visibility="gone">
+            android:visibility="visible">
 
             <Button
                 android:id="@+id/return_button"
@@ -411,10 +412,16 @@
             android:orientation="horizontal"
             android:layout_marginTop="0dp"
             android:gravity="center"
-            android:visibility="gone"
+            android:visibility="visible"
             app:layout_constraintTop_toBottomOf="@+id/switch_layout"
             app:layout_constraintVertical_chainStyle="spread">
 
+            <Button
+                android:id="@+id/load_teachers"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:text="@string/teachers_schedule" />
             <Button
                 android:id="@+id/load_session"
                 android:layout_width="wrap_content"
@@ -471,7 +478,7 @@
             android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Назад" />
+            android:text="@string/back" />
     </LinearLayout>
 
 

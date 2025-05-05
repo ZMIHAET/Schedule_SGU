@@ -32,7 +32,7 @@ public class TeacherActivity extends AppCompatActivity {
     loadSessionLayout, sessionLayout;
     private TableLayout sessionTable, scheduleTable;
     private Button loadButton, loadOwnButton, prevDayButton, nextDayButton,
-            znamButton, numButton, loadSession, returnButton;
+            znamButton, numButton, loadSession, returnButton, backButton, loadTeachersButton;
     private SwitchCompat switchLek, switchPr, switchLab;
     private TextView dayOfWeekText;
     private int currentDayOfWeek = 1, fadedColor;
@@ -59,9 +59,11 @@ public class TeacherActivity extends AppCompatActivity {
         setContentView(R.layout.activity_teacher);
 
 
-
         loadLayout = findViewById(R.id.load_layout);
-        loadOwnButton = findViewById(R.id.load_own_button);
+
+        //loadOwnButton = findViewById(R.id.load_own_button);
+        //loadOwnButton.setVisibility(View.VISIBLE);
+
         scheduleLayout = findViewById(R.id.schedule_layout);
         switchLayout = findViewById(R.id.switch_layout);
         loadSessionLayout = findViewById(R.id.load_session_layout);
@@ -69,11 +71,13 @@ public class TeacherActivity extends AppCompatActivity {
         sessionLayout = findViewById(R.id.session_layout);
         sessionTable = findViewById(R.id.session_table);
         loadSession = findViewById(R.id.load_session);
+        loadTeachersButton = findViewById(R.id.load_teachers);
 
         scheduleTable = findViewById(R.id.schedule_table);
         facSpinner = findViewById(R.id.fac_spinner);
         teacherSpinner = findViewById(R.id.teacher_spinner);
         loadButton = findViewById(R.id.load_teacher_button);
+        backButton = findViewById(R.id.back_button);
 
         znamButton = findViewById(R.id.znam_button);
         numButton = findViewById(R.id.num_button);
@@ -114,12 +118,41 @@ public class TeacherActivity extends AppCompatActivity {
         switchLab.setChecked(true);
 
 
+
         // Загружаем данные в новом потоке
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             teacherParserThread = new TeacherParserThread(this, baseUrl + "/schedule", facSpinner, teacherSpinner);
-            teacherParserThread.start(); // Запускаем в том же потоке
-            runOnUiThread(() -> loadButton.setEnabled(true)); // Включаем кнопку после загрузки
-        }).start();
+            teacherParserThread.start();
+            try {
+                teacherParserThread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            runOnUiThread(() -> loadButton.setEnabled(true));
+        });
+        thread.start();
+
+        try {
+            thread.join(); // Ждем завершения потока перед выполнением следующих строк
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        // загружаем расписание авторизованного препода
+        isOwnSchedule = true;
+        scheduleGenerator();
+
+
+        loadTeachersButton.setOnClickListener(v -> {
+            isOwnSchedule = false;
+
+            loadLayout.setVisibility(View.VISIBLE);
+
+            scheduleLayout.setVisibility(View.GONE);
+            scheduleTable.setVisibility(View.GONE);
+            switchLayout.setVisibility(View.GONE);
+            loadSessionLayout.setVisibility(View.GONE);
+        });
 
         loadButton.setOnClickListener(v -> {
             switchToSchedule();
@@ -127,12 +160,6 @@ public class TeacherActivity extends AppCompatActivity {
             scheduleGenerator();
         });
 
-        loadOwnButton.setOnClickListener(v -> {
-            switchToSchedule();
-            isOwnSchedule = true;
-
-            scheduleGenerator();
-        });
 
         prevDayButton.setOnClickListener(v -> {
             numButton.setBackgroundResource(android.R.drawable.btn_default);
@@ -168,7 +195,7 @@ public class TeacherActivity extends AppCompatActivity {
             for (int i = 0; i < lessons.length; i++) {
                 String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                 if (savedLesson.contains("З:")) {
-                    if (isLessonVisibleZnam[0] == false) {
+                    if (!isLessonVisibleZnam[0]) {
                         znamButton.setBackgroundColor(fadedColor);
                         if(!savedLesson.contains("Ч:"))
                             lessons[i].setText("");
@@ -319,10 +346,19 @@ public class TeacherActivity extends AppCompatActivity {
             String teacher = !isOwnSchedule ? teacherSpinner.getSelectedItem().toString() :
                     getIntent().getStringExtra("fullName");
             String Url = baseUrl + teacherParserThread.getTeacherHref(teacher);
-            Log.d("Url", Url);
+            //Log.d("Url", Url);
 
             new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, Url).start();
 
+        });
+
+        backButton.setOnClickListener(v -> {
+            dayOfWeekText.setVisibility(View.VISIBLE);
+            scheduleLayout.setVisibility(View.VISIBLE);
+            scheduleTable.setVisibility(View.VISIBLE);
+            switchLayout.setVisibility(View.VISIBLE);
+            loadSessionLayout.setVisibility(View.VISIBLE);
+            sessionLayout.setVisibility(View.GONE);
         });
 
         returnButton.setOnClickListener(v -> {
@@ -340,6 +376,16 @@ public class TeacherActivity extends AppCompatActivity {
             loadSessionLayout.setVisibility(View.GONE);
             loadLayout.setVisibility(View.VISIBLE);
         });
+
+        boolean shouldShowLoadLayout = getIntent().getBooleanExtra("showLoadLayout", false);
+        if (shouldShowLoadLayout) {
+            isOwnSchedule = false;
+            scheduleLayout.setVisibility(View.GONE);
+            scheduleTable.setVisibility(View.GONE);
+            switchLayout.setVisibility(View.GONE);
+            loadSessionLayout.setVisibility(View.GONE);
+            loadLayout.setVisibility(View.VISIBLE);
+        }
     }
 
 
@@ -362,20 +408,31 @@ public class TeacherActivity extends AppCompatActivity {
     }
 
 
-    private void scheduleGenerator(){
+    private void scheduleGenerator() {
+        // Проверяем инициализацию savedSchedules
+/*        if (savedSchedules == null || savedSchedules.size() != 7) {
+            initSavedSchedules();
+        }*/
+
+        // Проверяем currentDayOfWeek
+        if (currentDayOfWeek < 1 || currentDayOfWeek > 7) {
+            currentDayOfWeek = 1;
+        }
+
         String teacher = !isOwnSchedule ? teacherSpinner.getSelectedItem().toString() :
                 getIntent().getStringExtra("fullName");
         String Url = baseUrl + teacherParserThread.getTeacherHref(teacher);
-        Log.d("Url", Url);
-
 
         new ParseScheduleTeacherThread(TeacherActivity.this, Url,
                 savedSchedules, currentDayOfWeek, dayOfWeekText,
                 lessons).start();
+
         dayOfWeekText.setVisibility(View.VISIBLE);
         prevDayButton.setVisibility(View.VISIBLE);
         nextDayButton.setVisibility(View.VISIBLE);
     }
+
+
 
     public void showSessionLayout() {
         scheduleLayout.setVisibility(View.GONE);

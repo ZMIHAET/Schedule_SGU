@@ -19,7 +19,7 @@
             android:layout_width="wrap_content"
             android:layout_height="50dp"
             android:layout_marginBottom="16dp"
-            android:text="@string/SGU_schedule"
+            android:text="@string/student_schedule"
             android:textColor="@color/text_color"
             android:textSize="24sp"
             android:textStyle="bold" />
@@ -70,14 +70,13 @@
             android:layout_marginTop="16dp"
             android:text="@string/load_schedule" />
 
-        <ImageView
-            android:layout_width="wrap_content"
+        <Button
+            android:id="@+id/load_teacher_schedule"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
-            android:maxWidth="200dp"
-            android:maxHeight="200dp"
-            android:src="@drawable/sgu" />
+            android:text="@string/teacher_schedule" />
+
 
     </LinearLayout>
 
@@ -493,7 +492,7 @@
             android:id="@+id/back_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Назад" />
+            android:text="@string/back" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
