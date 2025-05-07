@@ -1,8 +1,10 @@
 package com.example.shedule.parser.teacher;
 
 import android.app.Activity;
-import android.util.Log;
+import android.text.method.LinkMovementMethod;
 import android.widget.TextView;
+
+import androidx.core.text.HtmlCompat;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -24,16 +26,18 @@ public class ParseScheduleTeacherThread extends Thread {
     private final TextView dayOfWeekText;
     private final TextView[] lessons;
     private final Calendar calendar = Calendar.getInstance();
+    private final boolean isNumeratorWeek;
 
     public ParseScheduleTeacherThread(Activity activity, String scheduleUrl,
                                       List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
-                                      TextView dayOfWeekText, TextView[] lessons) {
+                                      TextView dayOfWeekText, TextView[] lessons, boolean isNumeratorWeek) {
         this.activity = activity;
         this.scheduleUrl = scheduleUrl;
         this.savedSchedules = savedSchedules;
         this.currentDayOfWeek = currentDayOfWeek;
         this.dayOfWeekText = dayOfWeekText;
         this.lessons = lessons;
+        this.isNumeratorWeek = isNumeratorWeek;
     }
 
     @Override
@@ -42,7 +46,6 @@ public class ParseScheduleTeacherThread extends Thread {
             ArrayList<String> schedule;
             if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
                 schedule = parseSchedule(scheduleUrl);
-                Log.d("CHECK", "aaaaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
             } else
                 schedule = savedSchedules.get(currentDayOfWeek - 1);
 
@@ -52,11 +55,13 @@ public class ParseScheduleTeacherThread extends Thread {
                 // Обновить текст в lessons
                 for (int i = 0; i < lessons.length; i++) {
                     if (i < finalSchedule.size()) {
-                        lessons[i].setText(finalSchedule.get(i));
+                        lessons[i].setText(HtmlCompat.fromHtml(finalSchedule.get(i), HtmlCompat.FROM_HTML_MODE_LEGACY));
+                        lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                     } else {
                         lessons[i].setText("");
                     }
                 }
+
                 // Сохраняем список schedule после его первого получения
                 if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
                     for (int i = 0; i < 8; i++) {
@@ -87,24 +92,42 @@ public class ParseScheduleTeacherThread extends Thread {
                     for (Element lessonElement : lessonElements) {
                         String type = lessonElement.selectFirst("div.schedule-table__lesson-props div") != null
                                 ? lessonElement.selectFirst("div.schedule-table__lesson-props div").text() : "Не указан тип";
+                        String subgr = lessonElement.selectFirst("div.schedule-table__lesson-uncertain") != null
+                                ? lessonElement.selectFirst("div.schedule-table__lesson-uncertain").text() : "";
                         String lessonName = lessonElement.selectFirst("div.schedule-table__lesson-name").text();
-                        String group = lessonElement.selectFirst("schedule-table__lesson-group") != null
-                                ? lessonElement.selectFirst("schedule-table__lesson-group").text() : "Не указана группа";
+                        String group = lessonElement.selectFirst("div.schedule-table__lesson-group span") != null
+                                ? lessonElement.selectFirst("div.schedule-table__lesson-group span").text()
+                                : "Не указана группа";
                         String room = lessonElement.selectFirst("div.schedule-table__lesson-room span").text();
                         String weekType = lessonElement.selectFirst("div.lesson-prop__num") != null ? "Ч" :
                                 lessonElement.selectFirst("div.lesson-prop__denom") != null ? "З" : "";
 
+                        String finalLesson = type + (subgr.isEmpty() ? "" : " (" + subgr + ")") +
+                                ": " + lessonName + " (" + group + ", " + room + ")";
+
                         if (weekType.equals("Ч")) {
-                            numeratorLesson = type + ": " + lessonName + " (" + group + ", " + room + ")";
+                            if (isNumeratorWeek) finalLesson = "<b>" + finalLesson + "</b>";
+                            numeratorLesson = finalLesson;
                         } else if (weekType.equals("З")) {
-                            denominatorLesson = type + ": " + lessonName + " (" + group + ", " + room + ")";
+                            if (!isNumeratorWeek) finalLesson = "<b>" + finalLesson + "</b>";
+                            denominatorLesson = finalLesson;
                         } else {
-                            selectedLesson = type + ": " + lessonName + " (" + group + ", " + room + ")";
+                            selectedLesson = finalLesson;
                         }
                     }
 
-                    if (!numeratorLesson.isEmpty() || !denominatorLesson.isEmpty()) {
-                        selectedLesson = "Ч: " + numeratorLesson + "\nЗ: " + denominatorLesson;
+                    if (!numeratorLesson.isEmpty() && denominatorLesson.isEmpty()) {
+                        String label = isNumeratorWeek ? "<b>Ч: </b>" : "Ч: ";
+                        selectedLesson = label + numeratorLesson;
+                    }
+                    else if (numeratorLesson.isEmpty() && !denominatorLesson.isEmpty()) {
+                        String label = !isNumeratorWeek ? "<b>З: </b>" : "З: ";
+                        selectedLesson = label + denominatorLesson;
+                    }
+                    else if (!numeratorLesson.isEmpty()) {
+                        String labelNum = isNumeratorWeek ? "<b>Ч: </b>" : "Ч: ";
+                        String labelDen = !isNumeratorWeek ? "<br><b>З: </b>" : "<br>З: ";
+                        selectedLesson = labelNum + numeratorLesson + labelDen + denominatorLesson;
                     }
 
                     schedule.add(selectedLesson);

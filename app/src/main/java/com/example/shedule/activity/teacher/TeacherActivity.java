@@ -12,10 +12,10 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.core.text.HtmlCompat;
 
 import com.example.shedule.R;
 import com.example.shedule.activity.auth.LoginActivity;
-import com.example.shedule.parser.student.ParseScheduleStudentThread;
 import com.example.shedule.parser.teacher.LoadSessionTeacherThread;
 import com.example.shedule.parser.teacher.ParseScheduleTeacherThread;
 import com.example.shedule.parser.teacher.TeacherParserThread;
@@ -23,6 +23,7 @@ import com.example.shedule.parser.teacher.TeacherParserThread;
 import org.jsoup.nodes.Document;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 public class TeacherActivity extends AppCompatActivity {
@@ -44,6 +45,8 @@ public class TeacherActivity extends AppCompatActivity {
     private List<String> savedSessionData = new ArrayList<>();
 
     private Document savedSessionDoc;
+    boolean isNumeratorWeek;
+
 
 
     /*
@@ -57,6 +60,15 @@ public class TeacherActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_teacher);
+
+        Calendar calendar = Calendar.getInstance();
+        int day = calendar.get(Calendar.DAY_OF_WEEK);
+        currentDayOfWeek = (day == Calendar.SUNDAY) ? 1 : day - 1;
+        Log.d("currentDayOfWeek", String.valueOf(currentDayOfWeek));
+
+        // Определяем тип текущей недели: числитель (Ч) или знаменатель (З)
+        int weekNumber = calendar.get(Calendar.WEEK_OF_YEAR);
+        isNumeratorWeek = (weekNumber % 2 == 1); // нечетные недели — числитель
 
 
         loadLayout = findViewById(R.id.load_layout);
@@ -193,11 +205,12 @@ public class TeacherActivity extends AppCompatActivity {
         znamButton.setOnClickListener(v -> {
             isLessonVisibleZnam[0] = !isLessonVisibleZnam[0];
             for (int i = 0; i < lessons.length; i++) {
-                String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                if (savedLesson.contains("З:")) {
+                String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+                if (rawText.contains("З:")) {
+                    String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                     if (!isLessonVisibleZnam[0]) {
                         znamButton.setBackgroundColor(fadedColor);
-                        if(!savedLesson.contains("Ч:"))
+                        if(!rawText.contains("Ч:"))
                             lessons[i].setText("");
                         else {
                             if (!isLessonVisibleChis[0])
@@ -205,7 +218,7 @@ public class TeacherActivity extends AppCompatActivity {
                             else {
                                 int indexOfZnam = savedLesson.indexOf("З:");
                                 if (checkSwitches(savedLesson.substring(0, indexOfZnam)))
-                                    lessons[i].setText(savedLesson.substring(0, indexOfZnam));
+                                    lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(0, indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
                         }
                     } else {
@@ -213,12 +226,12 @@ public class TeacherActivity extends AppCompatActivity {
                         if (savedLesson.contains("Ч:")) {
                             if (!isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(indexOfZnam));
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
                             } else
-                                lessons[i].setText(savedLesson);
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                         }
                         else
-                            lessons[i].setText(savedLesson);
+                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                     }
                 }
             }
@@ -229,11 +242,12 @@ public class TeacherActivity extends AppCompatActivity {
             isLessonVisibleChis[0] = !isLessonVisibleChis[0];
 
             for (int i = 0; i < lessons.length; i++) {
-                String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                if (savedLesson.contains("Ч:")) {
+                String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+                if (rawText.contains("Ч:")) {
+                    String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                     if (!isLessonVisibleChis[0]) {
                         numButton.setBackgroundColor(fadedColor);
-                        if (!savedLesson.contains("З:"))
+                        if (!rawText.contains("З:"))
                             lessons[i].setText("");
                         else {
                             if (!isLessonVisibleZnam[0])
@@ -241,7 +255,7 @@ public class TeacherActivity extends AppCompatActivity {
                             else {
                                 int indexOfZnam = savedLesson.indexOf("З:");
                                 if (checkSwitches(savedLesson.substring(indexOfZnam)))
-                                    lessons[i].setText(savedLesson.substring(indexOfZnam));
+                                    lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
                         }
                     } else {
@@ -249,12 +263,12 @@ public class TeacherActivity extends AppCompatActivity {
                         if (savedLesson.contains("З:")) {
                             if (!isLessonVisibleZnam[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(0, indexOfZnam));
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(0, indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
                             } else
-                                lessons[i].setText(savedLesson);
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                         }
                         else
-                            lessons[i].setText(savedLesson);
+                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                     }
                 }
             }
@@ -264,23 +278,26 @@ public class TeacherActivity extends AppCompatActivity {
         switchLek.setOnClickListener(v -> {
             boolean isChecked = switchLek.isChecked();
             for (int i = 0; i < lessons.length; i++) {
-                String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                if (savedLesson.contains("ЛЕКЦИЯ")) {
+                String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+                if (rawText.contains("ЛЕКЦИЯ")) {
                     if (!isChecked) {
                         lessons[i].setText("");
                     } else {
-                        if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
-                            lessons[i].setText(savedLesson);
+                        String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
+                        if (!rawText.contains("З:") && !rawText.contains("Ч:") )
+                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                         else {
                             if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
-                                lessons[i].setText(savedLesson);
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(0, indexOfZnam));
+                                String part = savedLesson.substring(0, indexOfZnam);
+                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
                             else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(indexOfZnam));
+                                String part = savedLesson.substring(indexOfZnam);
+                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
                         }
                     }
@@ -291,23 +308,26 @@ public class TeacherActivity extends AppCompatActivity {
         switchPr.setOnClickListener(v -> {
             boolean isChecked = switchPr.isChecked();
             for (int i = 0; i < lessons.length; i++) {
-                String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                if (savedLesson.contains("ПРАКТИКА")) {
+                // Получаем текст без HTML-тегов для проверки содержимого
+                String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+                if (rawText.contains("ПРАКТИКА")) {
                     if (!isChecked) {
                         lessons[i].setText("");
                     } else {
-                        if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
-                            lessons[i].setText(savedLesson);
-                        else {
-                            if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
-                                lessons[i].setText(savedLesson);
-                            else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
-                                int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(0, indexOfZnam));
-                            }
-                            else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
-                                int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(indexOfZnam));
+                        String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
+                        if (!rawText.contains("З:") && !rawText.contains("Ч:")) {
+                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                        } else {
+                            if (isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                            } else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
+                                int indexOfZnam = rawText.indexOf("З:");
+                                String part = savedLesson.substring(0, indexOfZnam);
+                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                            } else if (isLessonVisibleZnam[0]) {
+                                int indexOfZnam = rawText.indexOf("З:");
+                                String part = savedLesson.substring(indexOfZnam);
+                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
                         }
                     }
@@ -315,26 +335,30 @@ public class TeacherActivity extends AppCompatActivity {
             }
         });
 
+
         switchLab.setOnClickListener(v -> {
             boolean isChecked = switchLab.isChecked();
             for (int i = 0; i < lessons.length; i++) {
-                String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                if (savedLesson.contains("ЛАБОРАТОРНАЯ")) {
+                String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
+                if (rawText.contains("ЛАБОРАТОРНАЯ")) {
                     if (!isChecked) {
                         lessons[i].setText("");
                     } else {
+                        String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                         if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
-                            lessons[i].setText(savedLesson);
+                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                         else {
                             if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
-                                lessons[i].setText(savedLesson);
+                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(0, indexOfZnam));
+                                String part = savedLesson.substring(0, indexOfZnam);
+                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
-                            else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
+                            else if (isLessonVisibleZnam[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(savedLesson.substring(indexOfZnam));
+                                String part = savedLesson.substring(indexOfZnam);
+                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
                             }
                         }
                     }
@@ -425,7 +449,7 @@ public class TeacherActivity extends AppCompatActivity {
 
         new ParseScheduleTeacherThread(TeacherActivity.this, Url,
                 savedSchedules, currentDayOfWeek, dayOfWeekText,
-                lessons).start();
+                lessons, isNumeratorWeek).start();
 
         dayOfWeekText.setVisibility(View.VISIBLE);
         prevDayButton.setVisibility(View.VISIBLE);

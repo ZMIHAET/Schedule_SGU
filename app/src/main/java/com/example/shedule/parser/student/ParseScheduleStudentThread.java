@@ -26,17 +26,19 @@ public class ParseScheduleStudentThread extends Thread {
     private final String[] daysOfWeek = {"", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"};
     private final TextView dayOfWeekText;
     private final TextView[] lessons;
+    private final boolean isNumeratorWeek;
     private final Calendar calendar = Calendar.getInstance();
 
     public ParseScheduleStudentThread(Activity activity, String scheduleUrl,
                                       List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
-                                      TextView dayOfWeekText, TextView[] lessons) {
+                                      TextView dayOfWeekText, TextView[] lessons, boolean isNumeratorWeek) {
         this.activity = activity;
         this.scheduleUrl = scheduleUrl;
         this.savedSchedules = savedSchedules;
         this.currentDayOfWeek = currentDayOfWeek;
         this.dayOfWeekText = dayOfWeekText;
         this.lessons = lessons;
+        this.isNumeratorWeek = isNumeratorWeek;
     }
 
     @Override
@@ -83,37 +85,60 @@ public class ParseScheduleStudentThread extends Thread {
                     Element lessonCell = cols.get(dayIndex);
                     Elements lessonElements = lessonCell.select("div.schedule-table__lesson");
 
-                    String selectedLesson = "";
-                    String numeratorLesson = "", denominatorLesson = "";
+                    /*String selectedLesson = "";
+                    String numeratorLesson = "", denominatorLesson = "";*/
+
+                    StringBuilder selectedLessonBuilder = new StringBuilder();
+                    StringBuilder numeratorBuilder = new StringBuilder();
+                    StringBuilder denominatorBuilder = new StringBuilder();
 
                     for (Element lessonElement : lessonElements) {
                         String type = getTextSafe(lessonElement, "div.schedule-table__lesson-props div", "Не указан тип");
+                        String subgr = getTextSafe(lessonElement, "div.schedule-table__lesson-uncertain", "");
                         String lessonName = getTextSafe(lessonElement, "div.schedule-table__lesson-name", "Без названия");
                         String teacherRaw = getTextSafe(lessonElement, "div.schedule-table__lesson-teacher span, div.schedule-table__lesson-teacher a", "Не указан преподаватель");
                         String room = getTextSafe(lessonElement, "div.schedule-table__lesson-room span", "—");
 
-                        // Преобразуем teacherRaw к формату Фамилия И.О.
                         String teacherLinked = formatTeacherAsLink(teacherRaw);
 
                         String weekType = lessonElement.selectFirst("div.lesson-prop__num") != null ? "Ч" :
                                 lessonElement.selectFirst("div.lesson-prop__denom") != null ? "З" : "";
 
-                        String lessonText = type + ": " + lessonName + " (" + teacherLinked + ", " + room + ")";
+                        String lessonText = type + (subgr.isEmpty() ? "" : " (" + subgr + ")") +
+                                ": " + lessonName + " (" + teacherLinked + ", " + room + ")";
 
-                        if (weekType.equals("Ч")) {
-                            numeratorLesson = lessonText;
-                        } else if (weekType.equals("З")) {
-                            denominatorLesson = lessonText;
-                        } else {
-                            selectedLesson = lessonText;
+                        switch (weekType) {
+                            case "Ч":
+                                if (isNumeratorWeek) lessonText = "<b>" + lessonText + "</b>";
+                                numeratorBuilder.append(lessonText).append("<br>");
+                                break;
+                            case "З":
+                                if (!isNumeratorWeek) lessonText = "<b>" + lessonText + "</b>";
+                                denominatorBuilder.append(lessonText).append("<br>");
+                                break;
+                            default:
+                                selectedLessonBuilder.append(lessonText).append("<br>");
+                                break;
                         }
                     }
 
-                    if (!numeratorLesson.isEmpty() || !denominatorLesson.isEmpty()) {
-                        selectedLesson = "Ч: " + numeratorLesson + "\nЗ: " + denominatorLesson;
+                    // Объединяем всё для одной ячейки (одной пары)
+                    StringBuilder finalLessonBuilder = new StringBuilder();
+                    if (numeratorBuilder.length() > 0 || denominatorBuilder.length() > 0) {
+                        if (numeratorBuilder.length() > 0) {
+                            String label = isNumeratorWeek ? "<b>Ч: </b>" : "Ч: ";
+                            finalLessonBuilder.append(label).append(numeratorBuilder);
+                        }
+                        if (denominatorBuilder.length() > 0) {
+                            String label = !isNumeratorWeek ? "<b>З: </b>" : "З: ";
+                            finalLessonBuilder.append(label).append(denominatorBuilder);
+                        }
+                    } else {
+                        finalLessonBuilder = selectedLessonBuilder;
                     }
 
-                    schedule.add(selectedLesson);
+                    schedule.add(finalLessonBuilder.toString());
+
                 }
             }
         } catch (IOException e) {
