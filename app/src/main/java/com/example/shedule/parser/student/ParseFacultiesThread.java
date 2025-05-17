@@ -26,13 +26,10 @@ public class ParseFacultiesThread extends Thread {
     public void run() {
         final List<String> faculties = parseFaculties();
 
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, faculties);
-                adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                facultySpinner.setAdapter(adapter);
-            }
+        activity.runOnUiThread(() -> {
+            ArrayAdapter<String> adapter = new ArrayAdapter<>(activity, android.R.layout.simple_spinner_item, faculties);
+            adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            facultySpinner.setAdapter(adapter);
         });
     }
 

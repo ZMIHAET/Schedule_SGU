@@ -15,14 +15,6 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/student_schedule"
-            android:textColor="@color/text_color"
-            android:textSize="24sp"
-            android:textStyle="bold" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -77,6 +69,65 @@
             android:layout_marginTop="16dp"
             android:text="@string/teacher_schedule" />
 
+        <Button
+            android:id="@+id/favourites_teachers"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/fav_teachers" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/favourites_layout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        app:layout_constraintTop_toTopOf="parent"
+        android:visibility="gone">
+
+        <TextView
+            android:id="@+id/fav_teachers_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/fav_teachers"
+            android:textStyle="bold"
+            android:layout_marginTop="24dp"
+            android:layout_marginBottom="8dp" />
+
+        <ListView
+            android:id="@+id/fav_teachers_list"
+            android:layout_width="match_parent"
+            android:layout_height="150dp"
+            android:divider="@android:color/darker_gray"
+            android:dividerHeight="1dp"
+            android:background="@android:color/white" />
+
+        <EditText
+            android:id="@+id/add_teacher_input"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/enter_name"
+            android:layout_marginTop="16dp"
+            android:inputType="textPersonName" />
+
+        <Button
+            android:id="@+id/add_teacher_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/add_to_favs"
+            android:layout_marginTop="8dp" />
+
+        <Button
+            android:id="@+id/delete_teacher_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/del_from_favs"
+            android:layout_marginTop="8dp" />
+
 
     </LinearLayout>
 
@@ -86,7 +137,8 @@
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/load_layout"
         app:layout_constraintBottom_toTopOf="@id/bottom_layout"
-        app:layout_constraintVertical_weight="1">
+        app:layout_constraintVertical_weight="1"
+        android:visibility="gone">
 
         <TableLayout
             android:id="@+id/schedule_table"

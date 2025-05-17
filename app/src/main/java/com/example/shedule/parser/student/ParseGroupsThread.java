@@ -33,48 +33,45 @@ public class ParseGroupsThread extends Thread {
     @Override
     public void run() {
         final List<String> groups = parseGroups(faculty);
-        activity.runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                List<String> courses = new ArrayList<>();
-                char lastCourse = (groups.get(groups.size() - 1)).charAt(0);
-                int courseQuantity = 2;
-                while (!Character.isDigit(lastCourse)) {
-                    lastCourse = (groups.get(groups.size() - courseQuantity)).charAt(0);
-                    courseQuantity++;
-                }
-                for (int i = 0; i < Character.getNumericValue(lastCourse); i++){
-                    int k = i + 1;
-                    String numberOfCourse = String.valueOf(k);
-                    String course = numberOfCourse + " курс";
-                    courses.add(i, course);
-                }
-                ArrayAdapter<String> courseAdapter = new ArrayAdapter<>(activity,
-                        android.R.layout.simple_spinner_item, courses);
-                courseAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                courseSpinner.setAdapter(courseAdapter);
-
-                courseSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-                    @Override
-                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                        List<String> currentGroups = new ArrayList<>();
-                        for (int i = 0; i < groups.size(); i++){
-                            if (groups.get(i).charAt(0) == courseSpinner.getSelectedItem().toString().charAt(0)) {
-                                currentGroups.add(groups.get(i));
-                            }
-                        }
-                        ArrayAdapter<String> adapter = new ArrayAdapter<>(activity,
-                                android.R.layout.simple_spinner_item, currentGroups);
-                        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-                        groupSpinner.setAdapter(adapter);
-                    }
-
-                    @Override
-                    public void onNothingSelected(AdapterView<?> parent) {
-                        // Нет действий при сбросе выбора
-                    }
-                });
+        activity.runOnUiThread(() -> {
+            List<String> courses = new ArrayList<>();
+            char lastCourse = (groups.get(groups.size() - 1)).charAt(0);
+            int courseQuantity = 2;
+            while (!Character.isDigit(lastCourse)) {
+                lastCourse = (groups.get(groups.size() - courseQuantity)).charAt(0);
+                courseQuantity++;
             }
+            for (int i = 0; i < Character.getNumericValue(lastCourse); i++){
+                int k = i + 1;
+                String numberOfCourse = String.valueOf(k);
+                String course = numberOfCourse + " курс";
+                courses.add(i, course);
+            }
+            ArrayAdapter<String> courseAdapter = new ArrayAdapter<>(activity,
+                    android.R.layout.simple_spinner_item, courses);
+            courseAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            courseSpinner.setAdapter(courseAdapter);
+
+            courseSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    List<String> currentGroups = new ArrayList<>();
+                    for (int i = 0; i < groups.size(); i++){
+                        if (groups.get(i).charAt(0) == courseSpinner.getSelectedItem().toString().charAt(0)) {
+                            currentGroups.add(groups.get(i));
+                        }
+                    }
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(activity,
+                            android.R.layout.simple_spinner_item, currentGroups);
+                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+                    groupSpinner.setAdapter(adapter);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // Нет действий при сбросе выбора
+                }
+            });
         });
     }
     private List<String> parseGroups(String facultyName) {

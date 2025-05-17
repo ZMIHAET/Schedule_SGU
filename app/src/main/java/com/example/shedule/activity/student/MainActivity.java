@@ -2,31 +2,40 @@ package com.example.shedule.activity.student;
 
 import static com.example.shedule.R.*;
 
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.text.Html;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ListView;
 import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.core.content.ContextCompat;
 import androidx.core.text.HtmlCompat;
+import androidx.core.widget.NestedScrollView;
 
 import com.example.shedule.R;
 import com.example.shedule.activity.teacher.TeacherActivity;
 import com.example.shedule.parser.student.FacultySiteName;
+import com.example.shedule.parser.student.LoadFavouriteTeachers;
 import com.example.shedule.parser.student.LoadSessionStudentThread;
 import com.example.shedule.parser.student.ParseFacultiesThread;
 import com.example.shedule.parser.student.ParseGroupsThread;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
+import com.example.shedule.parser.teacher.checkTeachers.TeacherList;
+import com.example.shedule.parser.teacher.checkTeachers.TeacherParser;
+import com.example.shedule.parser.teacher.teacherId.TeacherIdCache;
 import com.example.shedule.parser.teacher.teacherId.TeacherIdCacheLoader;
 
 import org.jsoup.nodes.Document;
@@ -38,13 +47,16 @@ public class MainActivity extends AppCompatActivity {
 
     private Button loadButton, prevDayButton, nextDayButton,
             znamButton, numButton, loadSession, backButton, returnButton,
-    loadTeacherSchedule;
+    loadTeacherSchedule, favouritesTeachers, addTeacherButton, deleteTeacherButton;
+    private NestedScrollView scheduleScrollView;
+    private EditText addTeacherInput;
+    private ListView favTeachersList;
     private Spinner facultySpinner, groupSpinner, courseSpinner;
     private TextView dayOfWeekText;
     private SwitchCompat switchLek, switchPr, switchLab;
     private int currentDayOfWeek = 1, fadedColor;
     private LinearLayout loadLayout, scheduleLayout, switchLayout,
-            loadSessionLayout, sessionLayout;
+            loadSessionLayout, sessionLayout, favouritesLayout;
     private TableLayout sessionTable, scheduleTable;
     private TextView[] lessons;
     private List<ArrayList<String>> savedSchedules = new ArrayList<>();
@@ -52,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
     private Document savedSessionDoc;
     private FacultySiteName facultySiteName;
     boolean isNumeratorWeek;
+    private String selectedTeacher = null;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,13 +94,32 @@ public class MainActivity extends AppCompatActivity {
         nextDayButton = findViewById(R.id.next_day_button);
         znamButton = findViewById(R.id.znam_button);
         numButton = findViewById(R.id.num_button);
+
+        addTeacherButton = findViewById(id.add_teacher_button);
+        addTeacherButton.setEnabled(false);
+        addTeacherInput = findViewById(id.add_teacher_input);
+        addTeacherInput.setEnabled(false);
+        deleteTeacherButton = findViewById(id.delete_teacher_button);
+
+        favTeachersList = findViewById(R.id.fav_teachers_list);
+        List<String> favouritesList = LoadFavouriteTeachers.loadFavourites(this);
+        ArrayAdapter<String> favouritesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favouritesList);
+        favTeachersList.setAdapter(favouritesAdapter);
+
+
+
+        favouritesTeachers = findViewById(id.favourites_teachers);
         loadSession = findViewById(id.load_session);
         switchLek = findViewById(R.id.switch_lek);
         switchPr = findViewById(R.id.switch_pr);
         switchLab = findViewById(R.id.switch_lab);
         loadLayout = findViewById(R.id.load_layout);
         scheduleLayout = findViewById(R.id.schedule_layout);
+        favouritesLayout = findViewById(R.id.favourites_layout);
+
         scheduleTable = findViewById(R.id.schedule_table);
+        scheduleScrollView = findViewById(id.schedule_scroll_view);
+
         switchLayout = findViewById(R.id.switch_layout);
         loadSessionLayout = findViewById(R.id.load_session_layout);
         sessionLayout = findViewById(id.session_layout);
@@ -145,6 +178,7 @@ public class MainActivity extends AppCompatActivity {
             // делаем видимым schedule_layout, switch_layout и schedule_table
             scheduleLayout.setVisibility(View.VISIBLE);
             scheduleTable.setVisibility(View.VISIBLE);
+            scheduleScrollView.setVisibility(View.VISIBLE);
             switchLayout.setVisibility(View.VISIBLE);
             loadSessionLayout.setVisibility(View.VISIBLE);
             numButton.setBackgroundResource(android.R.drawable.btn_default);
@@ -163,6 +197,15 @@ public class MainActivity extends AppCompatActivity {
             intent.putExtra("showLoadLayout", true); // передаем флаг
             startActivity(intent);
         });
+
+        favouritesTeachers.setOnClickListener(v ->{
+            loadLayout.setVisibility(View.GONE);
+            favouritesLayout.setVisibility(View.VISIBLE);
+
+            new LoadFavouriteTeachers(this, loadLayout, favouritesLayout, addTeacherInput,
+                    addTeacherButton, deleteTeacherButton, favTeachersList);
+        });
+
 
         prevDayButton.setOnClickListener(v -> {
             numButton.setBackgroundResource(android.R.drawable.btn_default);
@@ -366,6 +409,7 @@ public class MainActivity extends AppCompatActivity {
             dayOfWeekText.setVisibility(View.VISIBLE);
             scheduleLayout.setVisibility(View.VISIBLE);
             scheduleTable.setVisibility(View.VISIBLE);
+            scheduleScrollView.setVisibility(View.VISIBLE);
             switchLayout.setVisibility(View.VISIBLE);
             loadSessionLayout.setVisibility(View.VISIBLE);
             sessionLayout.setVisibility(View.GONE);
@@ -381,6 +425,7 @@ public class MainActivity extends AppCompatActivity {
             dayOfWeekText.setVisibility(View.GONE);
             scheduleLayout.setVisibility(View.GONE);
             scheduleTable.setVisibility(View.GONE);
+            scheduleScrollView.setVisibility(View.GONE);
             switchLayout.setVisibility(View.GONE);
             loadSessionLayout.setVisibility(View.GONE);
             loadLayout.setVisibility(View.VISIBLE);
@@ -409,8 +454,11 @@ public class MainActivity extends AppCompatActivity {
     public void showSessionLayout() {
         scheduleLayout.setVisibility(View.GONE);
         scheduleTable.setVisibility(View.GONE);
+        scheduleScrollView.setVisibility(View.GONE);
         switchLayout.setVisibility(View.GONE);
         loadSessionLayout.setVisibility(View.GONE);
         sessionLayout.setVisibility(View.VISIBLE);
     }
+
+
 }

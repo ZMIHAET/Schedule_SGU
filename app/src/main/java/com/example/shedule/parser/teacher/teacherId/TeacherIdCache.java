@@ -1,5 +1,7 @@
 package com.example.shedule.parser.teacher.teacherId;
 
+import android.util.Log;
+
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -24,13 +26,9 @@ public class TeacherIdCache {
                 String dataId = el.attr("data-id");
 
                 String[] parts = fullName.split(" ");
-                if (parts.length == 3) {
-                    String lastName = parts[0];
-                    String initials = parts[1].substring(0, 1) + "." + parts[2].substring(0, 1) + ".";
-                    String key = lastName + " " + initials; // e.g. "Савин Д.В."
+                String lastName = parts[0];
 
-                    teacherIdMap.put(key, dataId);
-                }
+                teacherIdMap.put(lastName, dataId);
             }
             initialized = true;
         } catch (IOException e) {
@@ -39,7 +37,8 @@ public class TeacherIdCache {
     }
 
     public static synchronized String getTeacherId(String shortName) {
-        return teacherIdMap.get(shortName);
+        String[] parts = shortName.split(" ");
+        return teacherIdMap.get(parts[0]);
     }
 
     public static boolean isInitialized() {

@@ -1,11 +1,16 @@
 package com.example.shedule.parser.student;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.util.Log;
+import android.view.View;
 import android.widget.TextView;
 
-import androidx.core.text.HtmlCompat;
-
+import com.example.shedule.activity.teacher.TeacherActivity;
 import com.example.shedule.parser.teacher.teacherId.TeacherIdCache;
 
 import org.jsoup.Jsoup;
@@ -27,7 +32,6 @@ public class ParseScheduleStudentThread extends Thread {
     private final TextView dayOfWeekText;
     private final TextView[] lessons;
     private final boolean isNumeratorWeek;
-    private final Calendar calendar = Calendar.getInstance();
 
     public ParseScheduleStudentThread(Activity activity, String scheduleUrl,
                                       List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
@@ -43,37 +47,23 @@ public class ParseScheduleStudentThread extends Thread {
 
     @Override
     public void run() {
-        ArrayList<String> schedule;
-        if (savedSchedules.get(currentDayOfWeek - 1).isEmpty())
-            schedule = parseSchedule(scheduleUrl);
-        else
-            schedule = savedSchedules.get(currentDayOfWeek - 1);
+        ArrayList<SpannableStringBuilder> schedule = parseSchedule(scheduleUrl);
 
-        ArrayList<String> finalSchedule = schedule;
         activity.runOnUiThread(() -> {
             dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
-            // Обновить текст в lessons
             for (int i = 0; i < lessons.length; i++) {
-                if (i < finalSchedule.size()) {
-                    String htmlText = finalSchedule.get(i);
-                    lessons[i].setText(HtmlCompat.fromHtml(htmlText, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                if (i < schedule.size()) {
+                    lessons[i].setText(schedule.get(i));
                     lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                 } else {
                     lessons[i].setText("");
                 }
             }
-
-            // Сохраняем список schedule после его первого получения
-            if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
-                for (int i = 0; i < 8; i++){
-                    savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
-                }
-            }
         });
     }
 
-    private ArrayList<String> parseSchedule(String scheduleUrl) {
-        ArrayList<String> schedule = new ArrayList<>();
+    private ArrayList<SpannableStringBuilder> parseSchedule(String scheduleUrl) {
+        ArrayList<SpannableStringBuilder> schedule = new ArrayList<>();
         try {
             Document document = Jsoup.connect(scheduleUrl).get();
             Elements rows = document.select("tbody tr");
@@ -85,12 +75,9 @@ public class ParseScheduleStudentThread extends Thread {
                     Element lessonCell = cols.get(dayIndex);
                     Elements lessonElements = lessonCell.select("div.schedule-table__lesson");
 
-                    /*String selectedLesson = "";
-                    String numeratorLesson = "", denominatorLesson = "";*/
-
-                    StringBuilder selectedLessonBuilder = new StringBuilder();
-                    StringBuilder numeratorBuilder = new StringBuilder();
-                    StringBuilder denominatorBuilder = new StringBuilder();
+                    SpannableStringBuilder selectedLessonBuilder = new SpannableStringBuilder();
+                    SpannableStringBuilder numeratorBuilder = new SpannableStringBuilder();
+                    SpannableStringBuilder denominatorBuilder = new SpannableStringBuilder();
 
                     for (Element lessonElement : lessonElements) {
                         String type = getTextSafe(lessonElement, "div.schedule-table__lesson-props div", "Не указан тип");
@@ -99,46 +86,58 @@ public class ParseScheduleStudentThread extends Thread {
                         String teacherRaw = getTextSafe(lessonElement, "div.schedule-table__lesson-teacher span, div.schedule-table__lesson-teacher a", "Не указан преподаватель");
                         String room = getTextSafe(lessonElement, "div.schedule-table__lesson-room span", "—");
 
-                        String teacherLinked = formatTeacherAsLink(teacherRaw);
+                        Spanned teacherSpan = makeTeacherSpannable(teacherRaw);
+
+                        String prefix = type + (subgr.isEmpty() ? "" : " (" + subgr + ")") +
+                                ": " + lessonName + " (";
+                        String suffix = ", " + room + ")\n";
+
+                        SpannableStringBuilder fullLesson = new SpannableStringBuilder();
+                        fullLesson.append(prefix);
+                        fullLesson.append(teacherSpan);
+                        fullLesson.append(suffix);
 
                         String weekType = lessonElement.selectFirst("div.lesson-prop__num") != null ? "Ч" :
                                 lessonElement.selectFirst("div.lesson-prop__denom") != null ? "З" : "";
 
-                        String lessonText = type + (subgr.isEmpty() ? "" : " (" + subgr + ")") +
-                                ": " + lessonName + " (" + teacherLinked + ", " + room + ")";
-
                         switch (weekType) {
                             case "Ч":
-                                if (isNumeratorWeek) lessonText = "<b>" + lessonText + "</b>";
-                                numeratorBuilder.append(lessonText).append("<br>");
+                                if (isNumeratorWeek) fullLesson.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, fullLesson.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                numeratorBuilder.append(fullLesson);
                                 break;
                             case "З":
-                                if (!isNumeratorWeek) lessonText = "<b>" + lessonText + "</b>";
-                                denominatorBuilder.append(lessonText).append("<br>");
+                                if (!isNumeratorWeek) fullLesson.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, fullLesson.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                denominatorBuilder.append(fullLesson);
                                 break;
                             default:
-                                selectedLessonBuilder.append(lessonText).append("<br>");
-                                break;
+                                selectedLessonBuilder.append(fullLesson);
                         }
                     }
 
-                    // Объединяем всё для одной ячейки (одной пары)
-                    StringBuilder finalLessonBuilder = new StringBuilder();
+                    SpannableStringBuilder finalBuilder = new SpannableStringBuilder();
                     if (numeratorBuilder.length() > 0 || denominatorBuilder.length() > 0) {
+                        int end = 0;
                         if (numeratorBuilder.length() > 0) {
-                            String label = isNumeratorWeek ? "<b>Ч: </b>" : "Ч: ";
-                            finalLessonBuilder.append(label).append(numeratorBuilder);
+                            finalBuilder.append("Ч: ");
+                            if (isNumeratorWeek) {
+                                finalBuilder.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                                        0, finalBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            }
+                            finalBuilder.append(numeratorBuilder);
+                            end = finalBuilder.length();
                         }
                         if (denominatorBuilder.length() > 0) {
-                            String label = !isNumeratorWeek ? "<b>З: </b>" : "З: ";
-                            finalLessonBuilder.append(label).append(denominatorBuilder);
+                            finalBuilder.append("З:" );
+                            if (!isNumeratorWeek)
+                                finalBuilder.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                                        end, finalBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                            finalBuilder.append(denominatorBuilder);
                         }
                     } else {
-                        finalLessonBuilder = selectedLessonBuilder;
+                        finalBuilder = selectedLessonBuilder;
                     }
 
-                    schedule.add(finalLessonBuilder.toString());
-
+                    schedule.add(finalBuilder);
                 }
             }
         } catch (IOException e) {
@@ -152,18 +151,20 @@ public class ParseScheduleStudentThread extends Thread {
         return el != null ? el.text() : fallback;
     }
 
-    private String formatTeacherAsLink(String teacherName) {
-        if (teacherName.equals("Не указан преподаватель")) return teacherName;
-
-        // Преобразуем Фамилия И.О. → ссылку, если ID есть
+    private Spanned makeTeacherSpannable(String teacherName) {
         String id = TeacherIdCache.getTeacherId(teacherName);
-        if (id != null) {
-            return "<a href=\"https://www.sgu.ru/schedule/teacher/" + id + "\">" + teacherName + "</a>";
-        } else {
-            return teacherName; // без ссылки, если ID не найден
-        }
+        if (id == null) return new SpannableStringBuilder(teacherName);
+
+        SpannableStringBuilder spannable = new SpannableStringBuilder(teacherName);
+        spannable.setSpan(new ClickableSpan() {
+            @Override
+            public void onClick(View widget) {
+                Intent intent = new Intent(activity, TeacherActivity.class);
+                intent.putExtra("teacherUrl", "https://www.sgu.ru/schedule/teacher/" + id);
+                activity.startActivity(intent);
+            }
+        }, 0, teacherName.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+        return spannable;
     }
-
-
-
 }

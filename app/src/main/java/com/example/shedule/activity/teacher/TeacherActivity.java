@@ -25,6 +25,7 @@ import org.jsoup.nodes.Document;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.concurrent.ScheduledFuture;
 
 public class TeacherActivity extends AppCompatActivity {
 
@@ -46,6 +47,7 @@ public class TeacherActivity extends AppCompatActivity {
 
     private Document savedSessionDoc;
     boolean isNumeratorWeek;
+    boolean isEnemy = false;
 
 
 
@@ -129,6 +131,14 @@ public class TeacherActivity extends AppCompatActivity {
         switchPr.setChecked(true);
         switchLab.setChecked(true);
 
+        //обработчик учителя из расписания студента
+        String enemyUrl = getIntent().getStringExtra("teacherUrl");
+        scheduleGenerator(enemyUrl);
+
+        //обработчик избранных преподавателей
+        String teacherUrl = getIntent().getStringExtra("teacherUrl");
+        scheduleGenerator(teacherUrl);
+
 
 
         // Загружаем данные в новом потоке
@@ -184,7 +194,10 @@ public class TeacherActivity extends AppCompatActivity {
                 currentDayOfWeek = 6;
             }
             // выводим расписание
-            scheduleGenerator();
+            if (!isEnemy)
+                scheduleGenerator();
+            else
+                scheduleGenerator(enemyUrl);
         });
 
         nextDayButton.setOnClickListener(v -> {
@@ -198,7 +211,10 @@ public class TeacherActivity extends AppCompatActivity {
                 currentDayOfWeek = 1;
             }
             // выводим расписание
-            scheduleGenerator();
+            if (!isEnemy)
+                scheduleGenerator();
+            else
+                scheduleGenerator(enemyUrl);
         });
 
 
@@ -370,10 +386,11 @@ public class TeacherActivity extends AppCompatActivity {
             String teacher = !isOwnSchedule ? teacherSpinner.getSelectedItem().toString() :
                     getIntent().getStringExtra("fullName");
             String Url = baseUrl + teacherParserThread.getTeacherHref(teacher);
-            //Log.d("Url", Url);
 
-            new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, Url).start();
-
+            if (!isEnemy)
+                new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, Url).start();
+            else
+                new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, enemyUrl).start();
         });
 
         backButton.setOnClickListener(v -> {
@@ -401,6 +418,10 @@ public class TeacherActivity extends AppCompatActivity {
             loadLayout.setVisibility(View.VISIBLE);
         });
 
+
+
+
+        //обработчик расписания преподов из расписания студента
         boolean shouldShowLoadLayout = getIntent().getBooleanExtra("showLoadLayout", false);
         if (shouldShowLoadLayout) {
             isOwnSchedule = false;
@@ -455,6 +476,24 @@ public class TeacherActivity extends AppCompatActivity {
         prevDayButton.setVisibility(View.VISIBLE);
         nextDayButton.setVisibility(View.VISIBLE);
     }
+
+    private void scheduleGenerator(String url) {
+        isEnemy = true;
+        // Проверяем currentDayOfWeek
+        if (currentDayOfWeek < 1 || currentDayOfWeek > 7) {
+            currentDayOfWeek = 1;
+        }
+
+
+        new ParseScheduleTeacherThread(TeacherActivity.this, url,
+                savedSchedules, currentDayOfWeek, dayOfWeekText,
+                lessons, isNumeratorWeek).start();
+
+        dayOfWeekText.setVisibility(View.VISIBLE);
+        prevDayButton.setVisibility(View.VISIBLE);
+        nextDayButton.setVisibility(View.VISIBLE);
+    }
+
 
 
 
