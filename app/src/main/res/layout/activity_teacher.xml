@@ -381,7 +381,7 @@
                 android:id="@+id/return_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Назад" />
+                android:text="@string/back" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switch_lek"
@@ -406,29 +406,44 @@
         </LinearLayout>
 
         <LinearLayout
-            android:id="@+id/load_session_layout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginTop="0dp"
-            android:gravity="center"
-            android:visibility="visible"
-            app:layout_constraintTop_toBottomOf="@+id/switch_layout"
-            app:layout_constraintVertical_chainStyle="spread">
+            app:layout_constraintTop_toBottomOf="@+id/switch_layout">
 
+            <!-- Основной контейнер с двумя кнопками -->
+            <LinearLayout
+                android:id="@+id/load_session_layout"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="horizontal"
+                android:gravity="center">
+
+                <Button
+                    android:id="@+id/load_teachers"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/teachers_schedule" />
+
+                <Button
+                    android:id="@+id/load_session"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/session" />
+            </LinearLayout>
+
+            <!-- Кнопка кафедры вынесена отдельно -->
             <Button
-                android:id="@+id/load_teachers"
+                android:id="@+id/load_department"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:text="@string/teachers_schedule" />
-            <Button
-                android:id="@+id/load_session"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="0"
-                android:text="@string/session" />
+                android:text="@string/department" />
         </LinearLayout>
+
+
 
     </LinearLayout>
 

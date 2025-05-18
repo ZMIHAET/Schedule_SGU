@@ -20,6 +20,7 @@ import java.util.Objects;
 public class ParseScheduleTeacherThread extends Thread {
     private final Activity activity;
     private final String scheduleUrl;
+    private final String defaultUrl;
     private final List<ArrayList<String>> savedSchedules;
     private final int currentDayOfWeek;
     private final String[] daysOfWeek = {"", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"};
@@ -29,10 +30,11 @@ public class ParseScheduleTeacherThread extends Thread {
     private final boolean isNumeratorWeek;
 
     public ParseScheduleTeacherThread(Activity activity, String scheduleUrl,
-                                      List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
+                                      String defaultUrl, List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
                                       TextView dayOfWeekText, TextView[] lessons, boolean isNumeratorWeek) {
         this.activity = activity;
         this.scheduleUrl = scheduleUrl;
+        this.defaultUrl = defaultUrl;
         this.savedSchedules = savedSchedules;
         this.currentDayOfWeek = currentDayOfWeek;
         this.dayOfWeekText = dayOfWeekText;
@@ -44,7 +46,7 @@ public class ParseScheduleTeacherThread extends Thread {
     public void run() {
         if (!Objects.equals(scheduleUrl, "https://www.sgu.runull")) {
             ArrayList<String> schedule;
-            if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
+            if (savedSchedules.get(currentDayOfWeek - 1).isEmpty() || !Objects.equals(scheduleUrl, defaultUrl)) {
                 schedule = parseSchedule(scheduleUrl);
             } else
                 schedule = savedSchedules.get(currentDayOfWeek - 1);

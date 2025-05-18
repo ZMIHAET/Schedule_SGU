@@ -165,7 +165,7 @@
                     android:background="@drawable/cell_border_full"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="8:20\n9:50"
+                    android:text="@string/lesson_1"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -193,7 +193,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="10:00\n11:35"
+                    android:text="@string/lesson_2"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -221,7 +221,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="12:05\n13:40"
+                    android:text="@string/lesson_3"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -249,7 +249,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="13:50\n15:25"
+                    android:text="@string/lesson_4"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -277,7 +277,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="15:35\n17:10"
+                    android:text="@string/lesson_5"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -305,7 +305,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="17:20\n18:40"
+                    android:text="@string/lesson_6"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -333,7 +333,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="18:45\n20:05"
+                    android:text="@string/lesson_7"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -361,7 +361,7 @@
                     android:background="@drawable/cell_border"
                     android:gravity="right"
                     android:padding="8dp"
-                    android:text="20:10\n21:30"
+                    android:text="@string/lesson_8"
                     android:textColor="@color/text_color" />
 
                 <androidx.core.widget.NestedScrollView
@@ -452,7 +452,7 @@
                     android:id="@+id/return_button"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Назад" />
+                    android:text="@string/back" />
 
                 <androidx.appcompat.widget.SwitchCompat
                     android:id="@+id/switch_lek"
@@ -474,6 +474,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/lab"/>
+
             </LinearLayout>
 
             <LinearLayout

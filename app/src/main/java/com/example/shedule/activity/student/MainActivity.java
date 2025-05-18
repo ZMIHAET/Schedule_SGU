@@ -119,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
 
         scheduleTable = findViewById(R.id.schedule_table);
         scheduleScrollView = findViewById(id.schedule_scroll_view);
-
+    
         switchLayout = findViewById(R.id.switch_layout);
         loadSessionLayout = findViewById(R.id.load_session_layout);
         sessionLayout = findViewById(id.session_layout);

@@ -36,9 +36,10 @@
     <string name="back">Назад</string>
     <string name="student_schedule">Расписание студента</string>
     <string name="teacher_schedule">Расписание преподавателей</string>
-    <string name="teachers_schedule">Расписание преподавателей</string>
+    <string name="teachers_schedule">Преподаватели</string>
     <string name="fav_teachers">Избранные преподаватели</string>
     <string name="enter_name">Введите ФИО преподавателя</string>
     <string name="add_to_favs">Добавить в избранное</string>
     <string name="del_from_favs">Удалить из избранного</string>
+    <string name="department">Кафедра</string>
 </resources>

@@ -40,5 +40,10 @@
             android:name=".activity.auth.RegisterActivity"
             android:exported="true" />
 
+        <!-- Экран кафедры -->
+        <activity
+            android:name=".activity.teacher.DepartmentTeachersActivity"
+            android:exported="true" />
+
     </application>
 </manifest>
