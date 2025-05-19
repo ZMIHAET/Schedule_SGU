@@ -40,7 +40,7 @@ public class RegisterActivity extends AppCompatActivity {
         btnRegister.setEnabled(false); // Заблокировать кнопку
 
         new Thread(() -> {
-            TeacherParser.parseTeachers("https://www.sgu.ru/person");
+            TeacherParser.parseTeachers(getApplicationContext(), "https://www.sgu.ru/person");
 
             // После парсинга включаем кнопку в UI-потоке
             runOnUiThread(() -> btnRegister.setEnabled(true));

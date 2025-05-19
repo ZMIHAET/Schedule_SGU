@@ -50,13 +50,6 @@
             android:layout_marginTop="50dp"
             android:text="@string/load_schedule" />
 
-<!--        <Button
-            android:id="@+id/load_own_button"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="100dp"
-            android:text="@string/load_own_schedule" />-->
-
 
 
     </LinearLayout>
@@ -450,16 +443,17 @@
     <LinearLayout
         android:id="@+id/session_layout"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:orientation="vertical"
         android:visibility="gone"
+        app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent">
 
         <ScrollView
             android:id="@+id/scrollView"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="2">
+            android:layout_weight="1">
 
             <TableLayout
                 android:id="@+id/session_table"
@@ -468,25 +462,12 @@
                 android:stretchColumns="*">
 
                 <TableRow>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+                    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"/>
                 </TableRow>
 
             </TableLayout>
-
         </ScrollView>
 
         <Button

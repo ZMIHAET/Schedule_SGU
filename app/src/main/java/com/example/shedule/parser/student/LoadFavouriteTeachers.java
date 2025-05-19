@@ -51,7 +51,7 @@ public class LoadFavouriteTeachers {
         favTeachersList.setAdapter(favouritesAdapter);
 
         new Thread(() -> {
-            TeacherParser.parseTeachers("https://www.sgu.ru/person");
+            TeacherParser.parseTeachers(activity, "https://www.sgu.ru/person");
             activity.runOnUiThread(() -> {
                 addTeacherInput.setEnabled(true);
                 addTeacherButton.setEnabled(true);

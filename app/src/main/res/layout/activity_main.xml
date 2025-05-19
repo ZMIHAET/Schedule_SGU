@@ -104,7 +104,8 @@
             android:layout_height="150dp"
             android:divider="@android:color/darker_gray"
             android:dividerHeight="1dp"
-            android:background="@android:color/white" />
+            android:background="?android:attr/colorBackground" />
+
 
         <EditText
             android:id="@+id/add_teacher_input"

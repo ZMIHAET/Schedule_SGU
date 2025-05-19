@@ -98,14 +98,12 @@ public class TeacherActivity extends AppCompatActivity {
 
         if (TeacherList.getTeachers().isEmpty()) {
             new Thread(() -> {
-                TeacherParser.parseTeachers("https://www.sgu.ru/person");
+                TeacherParser.parseTeachers(getApplicationContext(), "https://www.sgu.ru/person");
                 runOnUiThread(() -> loadDepartment.setEnabled(true));
             }).start();
             // Запуск фоновой загрузки ID преподавателей
-            new TeacherIdCacheLoader().start();
+            new TeacherIdCacheLoader(getApplicationContext()).start();
         }
-        // Запуск фоновой загрузки ID преподавателей
-        new TeacherIdCacheLoader().start();
 
 
         backButton = findViewById(R.id.back_button);
@@ -148,21 +146,6 @@ public class TeacherActivity extends AppCompatActivity {
         switchPr.setChecked(true);
         switchLab.setChecked(true);
 
-        //обработчик учителя из расписания студента
-        String enemyUrl = getIntent().getStringExtra("teacherUrl");
-        if (enemyUrl != null) {
-            scheduleGenerator(enemyUrl);
-            loadDepartment.setVisibility(View.GONE);
-        }
-
-        //обработчик избранных преподавателей
-        String teacherUrl = getIntent().getStringExtra("teacherUrl");
-        if (teacherUrl != null) {
-            scheduleGenerator(teacherUrl);
-            loadDepartment.setVisibility(View.GONE);
-            loadTeachersButton.setVisibility(View.GONE);
-        }
-
 
         // Загружаем данные в новом потоке
         Thread thread = new Thread(() -> {
@@ -186,6 +169,23 @@ public class TeacherActivity extends AppCompatActivity {
         // загружаем расписание авторизованного препода
         isOwnSchedule = true;
         scheduleGenerator();
+
+        //обработчик учителя из расписания студента
+        String enemyUrl = getIntent().getStringExtra("teacherUrl");
+        if (enemyUrl != null) {
+            scheduleGenerator(enemyUrl);
+            loadDepartment.setVisibility(View.GONE);
+            isOwnSchedule = false;
+        }
+
+        //обработчик избранных преподавателей
+        String teacherUrl = getIntent().getStringExtra("teacherUrl");
+        if (teacherUrl != null) {
+            scheduleGenerator(teacherUrl);
+            loadDepartment.setVisibility(View.GONE);
+            loadTeachersButton.setVisibility(View.GONE);
+            isOwnSchedule = false;
+        }
 
 
         loadTeachersButton.setOnClickListener(v -> {
@@ -406,15 +406,29 @@ public class TeacherActivity extends AppCompatActivity {
         });
 
         loadSession.setOnClickListener(v -> {
-            String teacher = !isOwnSchedule ? teacherSpinner.getSelectedItem().toString() :
-                    getIntent().getStringExtra("fullName");
-            String Url = baseUrl + teacherParserThread.getTeacherHref(teacher);
+            // Скрываем лишние элементы
+            scheduleLayout.setVisibility(View.GONE);
+            scheduleTable.setVisibility(View.GONE);
+            switchLayout.setVisibility(View.GONE);
+            loadSessionLayout.setVisibility(View.GONE);
+            loadDepartment.setVisibility(View.GONE);
 
-            if (!isEnemy)
-                new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, Url).start();
-            else
-                new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, enemyUrl).start();
+            String finalUrl;
+
+            if (teacherUrl != null && !teacherUrl.isEmpty()) {
+                finalUrl = teacherUrl;
+            } else if (enemyUrl != null && !enemyUrl.isEmpty()) {
+                finalUrl = enemyUrl;
+            } else {
+                String teacher = !isOwnSchedule
+                        ? teacherSpinner.getSelectedItem().toString()
+                        : getIntent().getStringExtra("fullName");
+                finalUrl = baseUrl + teacherParserThread.getTeacherHref(teacher);
+            }
+
+            new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, finalUrl).start();
         });
+
 
         loadDepartment.setOnClickListener(v -> {
             String fullName = getIntent().getStringExtra("fullName");
@@ -458,6 +472,10 @@ public class TeacherActivity extends AppCompatActivity {
             switchLayout.setVisibility(View.VISIBLE);
             loadSessionLayout.setVisibility(View.VISIBLE);
             sessionLayout.setVisibility(View.GONE);
+            loadDepartment.setVisibility(View.GONE);
+            Log.d("isOwnSchedule", String.valueOf(isOwnSchedule));
+            if (isOwnSchedule)
+                loadDepartment.setVisibility(View.VISIBLE);
         });
 
         returnButton.setOnClickListener(v -> {

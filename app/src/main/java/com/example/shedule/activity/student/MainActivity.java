@@ -83,7 +83,7 @@ public class MainActivity extends AppCompatActivity {
 
 
         // Запуск фоновой загрузки ID преподавателей
-        new TeacherIdCacheLoader().start();
+        new TeacherIdCacheLoader(getApplicationContext()).start();
 
         facultySpinner = findViewById(R.id.faculty_spinner);
         groupSpinner = findViewById(R.id.group_spinner);
