@@ -1,6 +1,7 @@
 package com.example.shedule.activity.auth;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -27,6 +28,21 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+        boolean isLoggedIn = prefs.getBoolean("isLoggedIn", false);
+        long expiry = prefs.getLong("expiryTime", 0);
+
+        if (isLoggedIn && System.currentTimeMillis() < expiry) {
+            String role = prefs.getString("role", "");
+            String fullName = prefs.getString("fullName", "");
+
+            Intent intent = role.equals("Студент") ? new Intent(this, MainActivity.class)
+                    : new Intent(this, TeacherActivity.class);
+            intent.putExtra("fullName", fullName);
+            startActivity(intent);
+            finish();
+        }
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
 
@@ -74,13 +90,15 @@ public class LoginActivity extends AppCompatActivity {
             if (PasswordHasher.checkPassword(password, storedPassword)) {
                 if (selectedRole.equals(storedRole)) {
                     if (selectedRole.equals("Студент")) {
-                        Intent intent = new Intent(this, MainActivity.class);
-                        startActivity(intent);
+                        saveLoginSession("Студент", lastName + " " + firstName + " " + patronymic);
+                        startActivity(new Intent(this, MainActivity.class));
                     } else {
+                        saveLoginSession("Преподаватель", lastName + " " + firstName + " " + patronymic);
                         Intent intent = new Intent(this, TeacherActivity.class);
                         intent.putExtra("fullName", lastName + " " + firstName + " " + patronymic);
                         startActivity(intent);
                     }
+
                     finish();
                 } else {
                     Toast.makeText(this, "Неверная роль", Toast.LENGTH_SHORT).show();
@@ -97,5 +115,18 @@ public class LoginActivity extends AppCompatActivity {
         db.close();
 
     }
+
+    private void saveLoginSession(String role, String fullName) {
+        long oneWeekMillis = 7 * 24 * 60 * 60 * 1000L;
+        long currentTime = System.currentTimeMillis();
+        getSharedPreferences("auth", MODE_PRIVATE).edit()
+                .putBoolean("isLoggedIn", true)
+                .putString("role", role)
+                .putString("fullName", fullName)
+                .putLong("loginTime", currentTime)
+                .putLong("expiryTime", currentTime + oneWeekMillis)
+                .apply();
+    }
+
 
 }

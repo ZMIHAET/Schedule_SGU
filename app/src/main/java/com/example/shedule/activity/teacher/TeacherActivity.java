@@ -17,6 +17,7 @@ import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.text.HtmlCompat;
 
 import com.example.shedule.R;
+import com.example.shedule.activity.auth.LoginActivity;
 import com.example.shedule.parser.teacher.LoadSessionTeacherThread;
 import com.example.shedule.parser.teacher.ParseScheduleTeacherThread;
 import com.example.shedule.parser.teacher.TeacherParserThread;
@@ -588,6 +589,13 @@ public class TeacherActivity extends AppCompatActivity {
         switchLayout.setVisibility(View.GONE);
         loadSessionLayout.setVisibility(View.GONE);
         sessionLayout.setVisibility(View.VISIBLE);
+    }
+
+    private void logout() {
+        getSharedPreferences("auth", MODE_PRIVATE).edit().clear().apply();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
     }
 
 }

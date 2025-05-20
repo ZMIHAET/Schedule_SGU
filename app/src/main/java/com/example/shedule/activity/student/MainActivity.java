@@ -26,6 +26,7 @@ import androidx.core.text.HtmlCompat;
 import androidx.core.widget.NestedScrollView;
 
 import com.example.shedule.R;
+import com.example.shedule.activity.auth.LoginActivity;
 import com.example.shedule.activity.teacher.TeacherActivity;
 import com.example.shedule.parser.student.FacultySiteName;
 import com.example.shedule.parser.student.LoadFavouriteTeachers;
@@ -47,7 +48,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button loadButton, prevDayButton, nextDayButton,
             znamButton, numButton, loadSession, backButton, returnButton,
-    loadTeacherSchedule, favouritesTeachers, addTeacherButton, deleteTeacherButton, backFromFavs;
+    loadTeacherSchedule, favouritesTeachers, addTeacherButton, deleteTeacherButton, backFromFavs, logoutButton;
     private NestedScrollView scheduleScrollView;
     private EditText addTeacherInput;
     private ListView favTeachersList;
@@ -107,9 +108,6 @@ public class MainActivity extends AppCompatActivity {
         favTeachersList.setAdapter(favouritesAdapter);
         backFromFavs = findViewById(R.id.back_from_favs);
 
-
-
-
         favouritesTeachers = findViewById(id.favourites_teachers);
         loadSession = findViewById(id.load_session);
         switchLek = findViewById(R.id.switch_lek);
@@ -130,6 +128,9 @@ public class MainActivity extends AppCompatActivity {
         returnButton = findViewById(id.return_button);
         loadTeacherSchedule = findViewById(R.id.load_teacher_schedule);
         facultySiteName = new FacultySiteName();
+
+        logoutButton = findViewById(R.id.logout_button);
+
 
 
         // Инициализировать массив lessons
@@ -437,6 +438,9 @@ public class MainActivity extends AppCompatActivity {
             loadSessionLayout.setVisibility(View.GONE);
             loadLayout.setVisibility(View.VISIBLE);
         });
+
+        logoutButton.setOnClickListener(v -> logout());
+
     }
 
     private boolean checkSwitches(String savedLesson){
@@ -466,6 +470,14 @@ public class MainActivity extends AppCompatActivity {
         loadSessionLayout.setVisibility(View.GONE);
         sessionLayout.setVisibility(View.VISIBLE);
     }
+
+    private void logout() {
+        getSharedPreferences("auth", MODE_PRIVATE).edit().clear().apply();
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(intent);
+    }
+
 
 
 }
