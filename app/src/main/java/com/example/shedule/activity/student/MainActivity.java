@@ -47,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Button loadButton, prevDayButton, nextDayButton,
             znamButton, numButton, loadSession, backButton, returnButton,
-    loadTeacherSchedule, favouritesTeachers, addTeacherButton, deleteTeacherButton;
+    loadTeacherSchedule, favouritesTeachers, addTeacherButton, deleteTeacherButton, backFromFavs;
     private NestedScrollView scheduleScrollView;
     private EditText addTeacherInput;
     private ListView favTeachersList;
@@ -105,6 +105,8 @@ public class MainActivity extends AppCompatActivity {
         List<String> favouritesList = LoadFavouriteTeachers.loadFavourites(this);
         ArrayAdapter<String> favouritesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favouritesList);
         favTeachersList.setAdapter(favouritesAdapter);
+        backFromFavs = findViewById(R.id.back_from_favs);
+
 
 
 
@@ -204,6 +206,11 @@ public class MainActivity extends AppCompatActivity {
 
             new LoadFavouriteTeachers(this, loadLayout, favouritesLayout, addTeacherInput,
                     addTeacherButton, deleteTeacherButton, favTeachersList);
+        });
+
+        backFromFavs.setOnClickListener(v ->{
+            loadLayout.setVisibility(View.VISIBLE);
+            favouritesLayout.setVisibility(View.GONE);
         });
 
 

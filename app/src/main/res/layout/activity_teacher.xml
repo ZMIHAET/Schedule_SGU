@@ -50,6 +50,21 @@
             android:layout_marginTop="50dp"
             android:text="@string/load_schedule" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="start"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/return_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/back" />
+
+        </LinearLayout>
+
 
 
     </LinearLayout>
@@ -371,10 +386,11 @@
             android:visibility="visible">
 
             <Button
-                android:id="@+id/return_button"
-                android:layout_width="wrap_content"
+                android:id="@+id/load_session"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:text="@string/back" />
+                android:layout_weight="1"
+                android:text="@string/session" />
 
             <androidx.appcompat.widget.SwitchCompat
                 android:id="@+id/switch_lek"
@@ -410,8 +426,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal"
-                android:gravity="center">
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/load_teachers"
@@ -420,12 +435,6 @@
                     android:layout_weight="1"
                     android:text="@string/teachers_schedule" />
 
-                <Button
-                    android:id="@+id/load_session"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:text="@string/session" />
             </LinearLayout>
 
             <!-- Кнопка кафедры вынесена отдельно -->

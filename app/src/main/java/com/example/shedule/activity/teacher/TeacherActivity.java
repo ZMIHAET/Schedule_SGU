@@ -193,6 +193,7 @@ public class TeacherActivity extends AppCompatActivity {
 
             loadLayout.setVisibility(View.VISIBLE);
 
+            loadDepartment.setVisibility(View.GONE);
             scheduleLayout.setVisibility(View.GONE);
             scheduleTable.setVisibility(View.GONE);
             switchLayout.setVisibility(View.GONE);
@@ -479,19 +480,17 @@ public class TeacherActivity extends AppCompatActivity {
         });
 
         returnButton.setOnClickListener(v -> {
-            savedSchedules.clear();
-            for (int i = 0; i < 7; i++) {
-                savedSchedules.add(new ArrayList<>());
-            }
-            isOwnSchedule = false;
-            savedSessionDoc = new Document("");
-            savedSessionData.clear();
-            dayOfWeekText.setVisibility(View.GONE);
-            scheduleLayout.setVisibility(View.GONE);
-            scheduleTable.setVisibility(View.GONE);
-            switchLayout.setVisibility(View.GONE);
-            loadSessionLayout.setVisibility(View.GONE);
-            loadLayout.setVisibility(View.VISIBLE);
+            isOwnSchedule = true;
+            dayOfWeekText.setVisibility(View.VISIBLE);
+            scheduleLayout.setVisibility(View.VISIBLE);
+            scheduleTable.setVisibility(View.VISIBLE);
+            switchLayout.setVisibility(View.VISIBLE);
+            loadSessionLayout.setVisibility(View.VISIBLE);
+            loadLayout.setVisibility(View.GONE);
+            Log.d("isOwnSchedule", String.valueOf(isOwnSchedule));
+            if (isOwnSchedule)
+                loadDepartment.setVisibility(View.VISIBLE);
+
         });
 
 
@@ -511,12 +510,17 @@ public class TeacherActivity extends AppCompatActivity {
         }
     }
 
-
     private boolean checkSwitches(String savedLesson){
         return savedLesson.contains("ЛЕКЦИЯ") && switchLek.isChecked() || savedLesson.contains("ПРАКТИКА") && switchPr.isChecked() || savedLesson.contains("ЛАБОРАТОРНАЯ") && switchLab.isChecked();
     }
 
     private void switchToSchedule(){
+        savedSchedules.clear();
+        for (int i = 0; i < 7; i++) {
+            savedSchedules.add(new ArrayList<>());
+        }
+        savedSessionDoc = new Document("");
+        savedSessionData.clear();
         loadLayout.setVisibility(View.GONE);
 
         scheduleLayout.setVisibility(View.VISIBLE);
@@ -532,10 +536,6 @@ public class TeacherActivity extends AppCompatActivity {
 
 
     private void scheduleGenerator() {
-        // Проверяем инициализацию savedSchedules
-/*        if (savedSchedules == null || savedSchedules.size() != 7) {
-            initSavedSchedules();
-        }*/
 
         // Проверяем currentDayOfWeek
         if (currentDayOfWeek < 1 || currentDayOfWeek > 7) {

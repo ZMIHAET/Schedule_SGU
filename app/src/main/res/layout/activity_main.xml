@@ -129,6 +129,19 @@
             android:text="@string/del_from_favs"
             android:layout_marginTop="8dp" />
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="start"
+            android:layout_marginTop="12dp">
+
+            <Button
+                android:id="@+id/back_from_favs"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/back" />
+        </LinearLayout>
 
     </LinearLayout>
 
