@@ -39,7 +39,7 @@ public class TeacherActivity extends AppCompatActivity {
     loadSessionLayout, sessionLayout;
     private TableLayout sessionTable, scheduleTable;
     private Button loadButton, loadOwnButton, prevDayButton, nextDayButton,
-            znamButton, numButton, loadSession, returnButton, backButton, loadTeachersButton, loadDepartment;
+            znamButton, numButton, loadSession, returnButton, backButton, loadTeachersButton, loadDepartment, logoutButton;
     private SwitchCompat switchLek, switchPr, switchLab;
     private TextView dayOfWeekText;
     private int currentDayOfWeek = 1, fadedColor;
@@ -93,17 +93,20 @@ public class TeacherActivity extends AppCompatActivity {
         facSpinner = findViewById(R.id.fac_spinner);
         teacherSpinner = findViewById(R.id.teacher_spinner);
         loadButton = findViewById(R.id.load_teacher_button);
+        logoutButton = findViewById(R.id.logout_button);
 
         loadDepartment = findViewById(R.id.load_department);
         loadDepartment.setEnabled(false);
 
         if (TeacherList.getTeachers().isEmpty()) {
             new Thread(() -> {
+                Log.d("Loaded", "Loading teachers...");
                 TeacherParser.parseTeachers(getApplicationContext(), "https://www.sgu.ru/person");
                 runOnUiThread(() -> loadDepartment.setEnabled(true));
             }).start();
-            // Запуск фоновой загрузки ID преподавателей
-            new TeacherIdCacheLoader(getApplicationContext()).start();
+        } else {
+            // Обязательно включаем кнопку, если данные уже были загружены
+            loadDepartment.setEnabled(true);
         }
 
 
@@ -176,6 +179,7 @@ public class TeacherActivity extends AppCompatActivity {
         if (enemyUrl != null) {
             scheduleGenerator(enemyUrl);
             loadDepartment.setVisibility(View.GONE);
+            logoutButton.setVisibility(View.GONE);
             isOwnSchedule = false;
         }
 
@@ -184,6 +188,7 @@ public class TeacherActivity extends AppCompatActivity {
         if (teacherUrl != null) {
             scheduleGenerator(teacherUrl);
             loadDepartment.setVisibility(View.GONE);
+            logoutButton.setVisibility(View.GONE);
             loadTeachersButton.setVisibility(View.GONE);
             isOwnSchedule = false;
         }
@@ -194,7 +199,9 @@ public class TeacherActivity extends AppCompatActivity {
 
             loadLayout.setVisibility(View.VISIBLE);
 
+
             loadDepartment.setVisibility(View.GONE);
+            logoutButton.setVisibility(View.GONE);
             scheduleLayout.setVisibility(View.GONE);
             scheduleTable.setVisibility(View.GONE);
             switchLayout.setVisibility(View.GONE);
@@ -414,6 +421,7 @@ public class TeacherActivity extends AppCompatActivity {
             switchLayout.setVisibility(View.GONE);
             loadSessionLayout.setVisibility(View.GONE);
             loadDepartment.setVisibility(View.GONE);
+            logoutButton.setVisibility(View.GONE);
 
             String finalUrl;
 
@@ -475,9 +483,12 @@ public class TeacherActivity extends AppCompatActivity {
             loadSessionLayout.setVisibility(View.VISIBLE);
             sessionLayout.setVisibility(View.GONE);
             loadDepartment.setVisibility(View.GONE);
+            logoutButton.setVisibility(View.GONE);
             Log.d("isOwnSchedule", String.valueOf(isOwnSchedule));
-            if (isOwnSchedule)
+            if (isOwnSchedule) {
                 loadDepartment.setVisibility(View.VISIBLE);
+                logoutButton.setVisibility(View.VISIBLE);
+            }
         });
 
         returnButton.setOnClickListener(v -> {
@@ -489,11 +500,13 @@ public class TeacherActivity extends AppCompatActivity {
             loadSessionLayout.setVisibility(View.VISIBLE);
             loadLayout.setVisibility(View.GONE);
             Log.d("isOwnSchedule", String.valueOf(isOwnSchedule));
-            if (isOwnSchedule)
+            if (isOwnSchedule) {
                 loadDepartment.setVisibility(View.VISIBLE);
+                logoutButton.setVisibility(View.VISIBLE);
+            }
 
         });
-
+        logoutButton.setOnClickListener(v -> logout());
 
 
 
@@ -506,7 +519,9 @@ public class TeacherActivity extends AppCompatActivity {
             switchLayout.setVisibility(View.GONE);
             loadSessionLayout.setVisibility(View.GONE);
             loadLayout.setVisibility(View.VISIBLE);
+            returnButton.setVisibility(View.GONE);
             loadDepartment.setVisibility(View.GONE);
+            logoutButton.setVisibility(View.GONE);
             loadTeachersButton.setVisibility(View.GONE);
         }
     }
