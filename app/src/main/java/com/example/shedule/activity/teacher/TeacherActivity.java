@@ -109,6 +109,10 @@ public class TeacherActivity extends AppCompatActivity {
             loadDepartment.setEnabled(true);
         }
 
+        // Запуск фоновой загрузки ID преподавателей
+        new TeacherIdCacheLoader(getApplicationContext()).start();
+
+
 
         backButton = findViewById(R.id.back_button);
 
@@ -471,6 +475,7 @@ public class TeacherActivity extends AppCompatActivity {
             ArrayList<String> names = new ArrayList<>();
             for (Teacher t : sameDeptTeachers) names.add(t.getFullName());
             intent.putStringArrayListExtra("teacherNames", names);
+            intent.putExtra("departmentName", department);
             startActivity(intent);
         });
 

@@ -33,7 +33,7 @@ public class DepartmentTeachersActivity extends AppCompatActivity {
         String departmentName = getIntent().getStringExtra("departmentName");
 
         if (departmentName != null) {
-            departmentNameText.setText("Кафедра: " + departmentName);
+            departmentNameText.setText(departmentName);
         }
 
         if (teacherNames == null || teacherNames.isEmpty()) {
@@ -51,6 +51,7 @@ public class DepartmentTeachersActivity extends AppCompatActivity {
             String fullName = teacherNames.get(position);
             Log.d("fullName", fullName);
             String teacherId = TeacherIdCache.getTeacherId(fullName);
+            Log.d("teacherId", teacherId);
 
             if (teacherId != null) {
                 String teacherUrl = "https://www.sgu.ru/schedule/teacher/" + teacherId;

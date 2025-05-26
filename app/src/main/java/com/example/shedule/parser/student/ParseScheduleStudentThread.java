@@ -49,6 +49,12 @@ public class ParseScheduleStudentThread extends Thread {
     public void run() {
         ArrayList<SpannableStringBuilder> schedule = parseSchedule(scheduleUrl);
 
+        // Сохраняем расписание в savedSchedules
+        savedSchedules.set(currentDayOfWeek - 1, new ArrayList<>());
+        for (SpannableStringBuilder s : schedule) {
+            savedSchedules.get(currentDayOfWeek - 1).add(s.toString()); // сохраняем как строку
+        }
+
         activity.runOnUiThread(() -> {
             dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
             for (int i = 0; i < lessons.length; i++) {
@@ -61,6 +67,7 @@ public class ParseScheduleStudentThread extends Thread {
             }
         });
     }
+
 
     private ArrayList<SpannableStringBuilder> parseSchedule(String scheduleUrl) {
         ArrayList<SpannableStringBuilder> schedule = new ArrayList<>();
@@ -127,7 +134,7 @@ public class ParseScheduleStudentThread extends Thread {
                             end = finalBuilder.length();
                         }
                         if (denominatorBuilder.length() > 0) {
-                            finalBuilder.append("З:" );
+                            finalBuilder.append("З: " );
                             if (!isNumeratorWeek)
                                 finalBuilder.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
                                         end, finalBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);

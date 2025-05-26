@@ -9,7 +9,6 @@
         android:id="@+id/department_name"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Кафедра"
         android:textStyle="bold"
         android:textSize="18sp"
         android:layout_marginBottom="12dp"
