@@ -75,24 +75,38 @@ public class ParseGroupsThread extends Thread {
         });
     }
     private List<String> parseGroups(String facultyName) {
-        Log.d("FacultyName", facultyName);
-
         List<String> groups = new ArrayList<>();
         try {
-            // Загружаем HTML-страницу
-            Document document = Jsoup.connect("https://www.sgu.ru/schedule").userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36").get();
+            Document document = Jsoup.connect("https://www.sgu.ru/schedule")
+                    .userAgent("Mozilla/5.0").get();
 
-            // Ищем контейнер с нужным факультетом
+            // Находим блок нужного факультета
             Elements facultyElements = document.select("div.accordion-container:has(h3:contains(" + facultyName + "))");
 
             if (!facultyElements.isEmpty()) {
-                Element facultyElement = facultyElements.first(); // Берем первый найденный элемент
+                Element facultyElement = facultyElements.first();
 
-                // Ищем все группы внутри этого факультета
-                Elements groupElements = facultyElement.select("li.schedule-number__item a");
+                // Ищем все div.schedule__form-education внутри факультета
+                Elements allForms = facultyElement.select("div.schedule__form-education");
 
-                for (Element group : groupElements) {
-                    groups.add(group.text().trim());
+                for (Element form : allForms) {
+                    boolean isZaoch = form.classNames().contains("schedule__form-education_zo");
+                    boolean isOchZaoch = form.classNames().contains("schedule__form-education_vo");
+
+                    // Находим все ссылки групп внутри этой формы
+                    Elements groupElements = form.select("a[href^=/schedule/]");
+
+                    for (Element group : groupElements) {
+                        String groupName = group.text().trim();
+                        if (!groupName.isEmpty()) {
+                            if (isZaoch) {
+                                groupName += " (зо)";
+                            }
+                            else if (isOchZaoch)
+                                groupName += " (о-зо)";
+                            groups.add(groupName);
+                        }
+                    }
                 }
             } else {
                 System.out.println("Факультет не найден: " + facultyName);
@@ -102,8 +116,9 @@ public class ParseGroupsThread extends Thread {
             e.printStackTrace();
         }
 
-        // Сортируем группы перед возвратом
         Collections.sort(groups);
         return groups;
     }
+
+
 }

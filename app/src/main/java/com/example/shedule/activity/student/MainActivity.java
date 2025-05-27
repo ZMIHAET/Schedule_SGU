@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.text.HtmlCompat;
 import androidx.core.widget.NestedScrollView;
 
@@ -46,6 +47,9 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 public class MainActivity extends AppCompatActivity {
+    private Button backButton;
+    private Button returnButton;
+    private Button loadSession;
     private Button prevDayButton;
     private Button nextDayButton;
     private Button znamButton;
@@ -110,7 +114,7 @@ public class MainActivity extends AppCompatActivity {
         Button backFromFavs = findViewById(R.id.back_from_favs);
 
         Button favouritesTeachers = findViewById(id.favourites_teachers);
-        Button loadSession = findViewById(id.load_session);
+        loadSession = findViewById(id.load_session);
         Button loadInfo = findViewById(id.load_info);
         switchLek = findViewById(R.id.switch_lek);
         switchPr = findViewById(R.id.switch_pr);
@@ -126,8 +130,8 @@ public class MainActivity extends AppCompatActivity {
         loadSessionLayout = findViewById(R.id.load_session_layout);
         sessionLayout = findViewById(id.session_layout);
         sessionTable = findViewById(R.id.session_table);
-        Button backButton = findViewById(R.id.back_button);
-        Button returnButton = findViewById(id.return_button);
+        backButton = findViewById(R.id.back_button);
+        returnButton = findViewById(id.return_button);
         Button loadTeacherSchedule = findViewById(R.id.load_teacher_schedule);
         facultySiteName = new FacultySiteName();
 
@@ -202,17 +206,21 @@ public class MainActivity extends AppCompatActivity {
             // скрываем load_layout
             loadLayout.setVisibility(View.GONE);
 
-            // делаем видимым schedule_layout, switch_layout и schedule_table
-            scheduleLayout.setVisibility(View.VISIBLE);
-            scheduleTable.setVisibility(View.VISIBLE);
-            scheduleScrollView.setVisibility(View.VISIBLE);
-            switchLayout.setVisibility(View.VISIBLE);
-            loadSessionLayout.setVisibility(View.VISIBLE);
-            numButton.setBackgroundResource(android.R.drawable.btn_default);
-            znamButton.setBackgroundResource(android.R.drawable.btn_default);
-            switchLek.setChecked(true);
-            switchPr.setChecked(true);
-            switchLab.setChecked(true);
+            String group = groupSpinner.getSelectedItem().toString();
+            if (!group.contains("(зо)")){
+                // делаем видимым schedule_layout, switch_layout и schedule_table
+                scheduleLayout.setVisibility(View.VISIBLE);
+                scheduleTable.setVisibility(View.VISIBLE);
+                scheduleScrollView.setVisibility(View.VISIBLE);
+                switchLayout.setVisibility(View.VISIBLE);
+                loadSessionLayout.setVisibility(View.VISIBLE);
+                numButton.setBackgroundResource(android.R.drawable.btn_default);
+                znamButton.setBackgroundResource(android.R.drawable.btn_default);
+                switchLek.setChecked(true);
+                switchPr.setChecked(true);
+                switchLab.setChecked(true);
+            }
+
 
             // Генерируем расписание
             scheduleGenerator();
@@ -447,7 +455,7 @@ public class MainActivity extends AppCompatActivity {
                 sessionUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
             }
             else
-                sessionUrl = enemyUrl;
+                sessionUrl = enemyUrl + "#session";
 
             new LoadSessionStudentThread(sessionUrl, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start();
 
@@ -458,13 +466,28 @@ public class MainActivity extends AppCompatActivity {
         });
 
         backButton.setOnClickListener(v -> {
-            dayOfWeekText.setVisibility(View.VISIBLE);
-            scheduleLayout.setVisibility(View.VISIBLE);
-            scheduleTable.setVisibility(View.VISIBLE);
-            scheduleScrollView.setVisibility(View.VISIBLE);
-            switchLayout.setVisibility(View.VISIBLE);
-            loadSessionLayout.setVisibility(View.VISIBLE);
-            sessionLayout.setVisibility(View.GONE);
+            String group = groupSpinner.getSelectedItem().toString();
+            if (group.contains("(зо)")){
+                savedSessionDoc = new Document("");
+                savedSessionData.clear();
+                dayOfWeekText.setVisibility(View.GONE);
+                scheduleLayout.setVisibility(View.GONE);
+                scheduleTable.setVisibility(View.GONE);
+                scheduleScrollView.setVisibility(View.GONE);
+                switchLayout.setVisibility(View.GONE);
+                loadSessionLayout.setVisibility(View.GONE);
+                sessionLayout.setVisibility(View.GONE);
+                loadLayout.setVisibility(View.VISIBLE);
+            }
+            else {
+                dayOfWeekText.setVisibility(View.VISIBLE);
+                scheduleLayout.setVisibility(View.VISIBLE);
+                scheduleTable.setVisibility(View.VISIBLE);
+                scheduleScrollView.setVisibility(View.VISIBLE);
+                switchLayout.setVisibility(View.VISIBLE);
+                loadSessionLayout.setVisibility(View.VISIBLE);
+                sessionLayout.setVisibility(View.GONE);
+            }
         });
 
         returnButton.setOnClickListener(v -> {
@@ -492,18 +515,32 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleGenerator(){
+        String scheduleUrl;
         String faculty = facultySpinner.getSelectedItem().toString();
         String group = groupSpinner.getSelectedItem().toString();
         Log.d("faculty", faculty);
 
         String facultyUrl = facultySiteName.showFacultyName(faculty);
-        String scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
-        new ParseScheduleStudentThread(MainActivity.this, scheduleUrl,
-                savedSchedules, currentDayOfWeek, dayOfWeekText,
-                lessons, isNumeratorWeek).start();
-        dayOfWeekText.setVisibility(View.VISIBLE);
-        prevDayButton.setVisibility(View.VISIBLE);
-        nextDayButton.setVisibility(View.VISIBLE);
+        if (group.contains("(зо)")) {
+            String[] parts = group.split(" ");
+            scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/zo/" + parts[0];
+            Log.d("scheduleUrl", scheduleUrl);
+            new LoadSessionStudentThread(scheduleUrl, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start();
+        }
+        else {
+            if (group.contains("(о-зо)")) {
+                String[] parts = group.split(" ");
+                scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/vo/" + parts[0];
+            }
+            else
+                scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
+            new ParseScheduleStudentThread(MainActivity.this, scheduleUrl,
+                    savedSchedules, currentDayOfWeek, dayOfWeekText,
+                    lessons, isNumeratorWeek).start();
+            dayOfWeekText.setVisibility(View.VISIBLE);
+            prevDayButton.setVisibility(View.VISIBLE);
+            nextDayButton.setVisibility(View.VISIBLE);
+        }
     }
 
     private void scheduleGenerator(String Url){

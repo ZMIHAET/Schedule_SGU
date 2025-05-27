@@ -90,6 +90,7 @@ public class ParseScheduleStudentThread extends Thread {
 
 
     private ArrayList<SpannableStringBuilder> parseSchedule(String scheduleUrl) {
+        Log.d("scheduleUrl", scheduleUrl);
         ArrayList<SpannableStringBuilder> schedule = new ArrayList<>();
         try {
             Document document = Jsoup.connect(scheduleUrl).get();

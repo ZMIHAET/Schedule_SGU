@@ -60,19 +60,28 @@ public class LoadSessionStudentThread extends Thread {
 
         // Парсим данные
         List<String> sessionData = parseSession(sessionDoc);
+        Log.d("sessionData", sessionData.toString());
 
-        // Обновляем UI в главном потоке
-        new Handler(Looper.getMainLooper()).post(() -> {
-            createSessionRows(sessionData);
-            mainActivity.showSessionLayout();
-        });
+            // Обновляем UI в главном потоке
+            new Handler(Looper.getMainLooper()).post(() -> {
+                sessionLayout.setVisibility(View.VISIBLE);
+                if (!sessionData.contains("Ошибка: не найден блок 'Расписание сессии'")) {
+                    createSessionRows(sessionData);
+                }
+                mainActivity.showSessionLayout();
+            });
+
     }
 
     private List<String> parseSession(Document doc) {
         List<String> sessionData = new ArrayList<>();
 
         // Находим секцию "Расписание сессии"
-        Element sessionTable = doc.selectFirst(".schedule__wrap-session table");
+        Element sessionTable;
+        if (sessionUrl.contains("/zo/"))
+            sessionTable = doc.selectFirst(".schedule__wrap-lection table");
+        else
+            sessionTable = doc.selectFirst(".schedule__wrap-session table");
 
         if (sessionTable == null) {
             sessionData.add("Ошибка: не найден блок 'Расписание сессии'");
@@ -88,8 +97,15 @@ public class LoadSessionStudentThread extends Thread {
 
             // Извлекаем дату и время
             String[] dateTimeParts = cells.get(0).text().trim().split(" ");
-            String date = dateTimeParts[0] + " " + dateTimeParts[1] + "\n" + dateTimeParts[2] + " " + dateTimeParts[3];
-            String time = dateTimeParts[4];
+            String date, time;
+            if (sessionUrl.contains("/zo/")) {
+                date = dateTimeParts[0] + " " + dateTimeParts[1] + "\n" + dateTimeParts[2];
+                time = dateTimeParts[3];
+            }
+            else {
+                date = dateTimeParts[0] + " " + dateTimeParts[1] + "\n" + dateTimeParts[2] + " " + dateTimeParts[3];
+                time = dateTimeParts[4];
+            }
 
             // Извлекаем тип экзамена и дисциплину
             String examType = cells.get(1).selectFirst(".schedule-form") != null ? cells.get(1).selectFirst(".schedule-form").text() : "";
@@ -176,7 +192,6 @@ public class LoadSessionStudentThread extends Thread {
             sessionTable.addView(row);
         }
 
-        sessionLayout.setVisibility(View.VISIBLE);
     }
 
 

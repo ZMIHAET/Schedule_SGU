@@ -522,12 +522,7 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
                     android:text="@string/session" />
-                <Button
-                    android:id="@+id/load_info"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="0"
-                    android:text="@string/extra_info" />
+
             </LinearLayout>
 
     </LinearLayout>
@@ -565,21 +560,34 @@
 
                     <TextView
                         android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        app:layout_constraintBottom_toBottomOf="parent"
-                        app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintStart_toStartOf="parent" />
+                        android:layout_height="wrap_content"/>
                 </TableRow>
 
             </TableLayout>
 
         </ScrollView>
 
-        <Button
-            android:id="@+id/back_button"
-            android:layout_width="wrap_content"
+        <!-- Горизонтальный блок с кнопками -->
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/back" />
+            android:orientation="horizontal"
+            android:gravity="center_horizontal">
+
+            <Button
+                android:id="@+id/back_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/back" />
+
+            <Button
+                android:id="@+id/load_info"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:text="@string/extra_info" />
+        </LinearLayout>
+
     </LinearLayout>
 
 
