@@ -1,12 +1,20 @@
 package com.example.shedule.parser.teacher;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
+import android.view.View;
 import android.widget.TextView;
 
-import androidx.core.text.HtmlCompat;
+import com.example.shedule.activity.student.MainActivity;
+import com.example.shedule.parser.student.FacultySiteName;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -15,7 +23,6 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Objects;
 
@@ -28,12 +35,12 @@ public class ParseScheduleTeacherThread extends Thread {
     private final String[] daysOfWeek = {"", "Понедельник", "Вторник", "Среда", "Четверг", "Пятница", "Суббота"};
     private final TextView dayOfWeekText;
     private final TextView[] lessons;
-    private final Calendar calendar = Calendar.getInstance();
     private final boolean isNumeratorWeek;
 
     public ParseScheduleTeacherThread(Activity activity, String scheduleUrl,
-                                      String defaultUrl, List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
-                                      TextView dayOfWeekText, TextView[] lessons, boolean isNumeratorWeek) {
+                                      String defaultUrl,  List<ArrayList<String>> savedSchedules,
+                                      int currentDayOfWeek, TextView dayOfWeekText, TextView[] lessons,
+                                      boolean isNumeratorWeek) {
         this.activity = activity;
         this.scheduleUrl = scheduleUrl;
         this.defaultUrl = defaultUrl;
@@ -47,15 +54,17 @@ public class ParseScheduleTeacherThread extends Thread {
     @Override
     public void run() {
         if (!Objects.equals(scheduleUrl, "https://www.sgu.runull")) {
-            ArrayList<String> schedule;
-            if (savedSchedules.get(currentDayOfWeek - 1).isEmpty() || !Objects.equals(scheduleUrl, defaultUrl)) {
-                schedule = parseSchedule(scheduleUrl);
-            } else
-                schedule = savedSchedules.get(currentDayOfWeek - 1);
+            ArrayList<SpannableStringBuilder> schedule = parseSchedule(scheduleUrl);
 
-            ArrayList<String> finalSchedule = schedule;
+            // Сохраняем как строки
+            savedSchedules.set(currentDayOfWeek - 1, new ArrayList<>());
+            for (SpannableStringBuilder s : schedule) {
+                savedSchedules.get(currentDayOfWeek - 1).add(s.toString());
+            }
+
             activity.runOnUiThread(() -> {
                 String dayText = daysOfWeek[currentDayOfWeek] + " (";
+
                 // Добавим жирную Ч или З
                 String weekLetter = isNumeratorWeek ? "числ" : "знам";
                 SpannableStringBuilder builder = new SpannableStringBuilder(dayText + weekLetter + ")");
@@ -72,90 +81,119 @@ public class ParseScheduleTeacherThread extends Thread {
                         start, end,
                         Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
                 );
-                dayOfWeekText.setText(builder);                // Обновить текст в lessons
+                dayOfWeekText.setText(builder);
+
                 for (int i = 0; i < lessons.length; i++) {
-                    if (i < finalSchedule.size()) {
-                        lessons[i].setText(HtmlCompat.fromHtml(finalSchedule.get(i), HtmlCompat.FROM_HTML_MODE_LEGACY));
+                    if (i < schedule.size()) {
+                        lessons[i].setText(schedule.get(i));
                         lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                     } else {
                         lessons[i].setText("");
                     }
                 }
-
-                // Сохраняем список schedule после его первого получения
-                if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
-                    for (int i = 0; i < 8; i++) {
-                        savedSchedules.get(currentDayOfWeek - 1).add(i, finalSchedule.get(i));
-                    }
-                }
             });
+
         }
     }
 
-    private ArrayList<String> parseSchedule(String scheduleUrl) {
-        ArrayList<String> schedule = new ArrayList<>();
+    private ArrayList<SpannableStringBuilder> parseSchedule(String scheduleUrl) {
+        ArrayList<SpannableStringBuilder> schedule = new ArrayList<>();
         try {
-            Document document = Jsoup.connect(scheduleUrl).get(); // Загружаем HTML-страницу с сайта
-            Elements rows = document.select("tbody tr"); // Выбираем строки с парами
-
-            int dayIndex = currentDayOfWeek - 1; // Индекс текущего дня недели в таблице
+            Document document = Jsoup.connect(scheduleUrl).get();
+            Elements rows = document.select("tbody tr");
+            int dayIndex = currentDayOfWeek - 1;
 
             for (Element row : rows) {
-                Elements cols = row.select("td.schedule-table__col"); // Получаем ячейки
+                Elements cols = row.select("td.schedule-table__col");
                 if (dayIndex < cols.size()) {
                     Element lessonCell = cols.get(dayIndex);
                     Elements lessonElements = lessonCell.select("div.schedule-table__lesson");
 
-                    String selectedLesson = "";
-                    String numeratorLesson = "", denominatorLesson = "";
+                    SpannableStringBuilder selectedLesson = new SpannableStringBuilder();
+                    SpannableStringBuilder numeratorLesson = new SpannableStringBuilder();
+                    SpannableStringBuilder denominatorLesson = new SpannableStringBuilder();
 
                     for (Element lessonElement : lessonElements) {
-                        String type = lessonElement.selectFirst("div.schedule-table__lesson-props div") != null
-                                ? lessonElement.selectFirst("div.schedule-table__lesson-props div").text() : "Не указан тип";
-                        String subgr = lessonElement.selectFirst("div.schedule-table__lesson-uncertain") != null
-                                ? lessonElement.selectFirst("div.schedule-table__lesson-uncertain").text() : "";
-                        String lessonName = lessonElement.selectFirst("div.schedule-table__lesson-name").text();
-                        String group = lessonElement.selectFirst("div.schedule-table__lesson-group span") != null
-                                ? lessonElement.selectFirst("div.schedule-table__lesson-group span").text()
-                                : "Не указана группа";
-                        String room = lessonElement.selectFirst("div.schedule-table__lesson-room span").text();
+                        String type = getSafeText(lessonElement, "div.schedule-table__lesson-props div", "Не указан тип");
+                        String subgr = getSafeText(lessonElement, "div.schedule-table__lesson-uncertain", "");
+                        String lessonName = getSafeText(lessonElement, "div.schedule-table__lesson-name", "Без названия");
+                        String group = getSafeText(lessonElement, "div.schedule-table__lesson-group span", "Не указана группа");
+                        String room = getSafeText(lessonElement, "div.schedule-table__lesson-room span", "—");
                         String weekType = lessonElement.selectFirst("div.lesson-prop__num") != null ? "Ч" :
                                 lessonElement.selectFirst("div.lesson-prop__denom") != null ? "З" : "";
 
-                        String finalLesson = type + (subgr.isEmpty() ? "" : " (" + subgr + ")") +
-                                ": " + lessonName + " (" + group + ", " + room + ")";
+                        SpannableStringBuilder lessonBuilder = new SpannableStringBuilder();
+                        lessonBuilder.append(type);
+                        if (!subgr.isEmpty()) lessonBuilder.append(" (").append(subgr).append(")");
+                        lessonBuilder.append(": ").append(lessonName).append(" (");
 
-                        if (weekType.equals("Ч")) {
-                            if (isNumeratorWeek) finalLesson = "<b>" + finalLesson + "</b>";
-                            numeratorLesson = finalLesson;
-                        } else if (weekType.equals("З")) {
-                            if (!isNumeratorWeek) finalLesson = "<b>" + finalLesson + "</b>";
-                            denominatorLesson = finalLesson;
+                        // Делает группу кликабельной
+                        if (group.contains("гр.")) {
+                            String[] parts = group.split("гр\\.");
+                            String groupNumber = parts[0].trim();
+                            String facultyShort = parts.length > 1 ? parts[1].trim() : "";
+                            String facultyCode = new FacultySiteName().showFacultyName(facultyShort);
+
+                            String displayGroup = group.trim();
+                            String groupUrl = "https://www.sgu.ru/schedule/" + facultyCode + "/do/" + groupNumber;
+
+                            SpannableStringBuilder clickableGroup = new SpannableStringBuilder(displayGroup);
+                            clickableGroup.setSpan(new ClickableSpan() {
+                                @Override
+                                public void onClick(View widget) {
+                                    Intent intent = new Intent(activity, MainActivity.class);
+                                    intent.putExtra("groupUrl", groupUrl);
+                                    activity.startActivity(intent);
+                                }
+                            }, 0, displayGroup.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+
+                            lessonBuilder.append(clickableGroup);
                         } else {
-                            selectedLesson = finalLesson;
+                            lessonBuilder.append(group);
+                        }
+
+                        lessonBuilder.append(", ").append(room).append(")\n");
+
+                        switch (weekType) {
+                            case "Ч":
+                                if (isNumeratorWeek)
+                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                numeratorLesson.append(lessonBuilder);
+                                break;
+                            case "З":
+                                if (!isNumeratorWeek)
+                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                denominatorLesson.append(lessonBuilder);
+                                break;
+                            default:
+                                selectedLesson.append(lessonBuilder);
+                                break;
                         }
                     }
 
-                    if (!numeratorLesson.isEmpty() && denominatorLesson.isEmpty()) {
-                        String label = isNumeratorWeek ? "<b>Ч: </b>" : "Ч: ";
-                        selectedLesson = label + numeratorLesson;
+                    SpannableStringBuilder finalBuilder = new SpannableStringBuilder();
+                    if (numeratorLesson.length() > 0) {
+                        finalBuilder.append("Ч: ").append(numeratorLesson);
                     }
-                    else if (numeratorLesson.isEmpty() && !denominatorLesson.isEmpty()) {
-                        String label = !isNumeratorWeek ? "<b>З: </b>" : "З: ";
-                        selectedLesson = label + denominatorLesson;
+                    if (denominatorLesson.length() > 0) {
+                        finalBuilder.append("З: ").append(denominatorLesson);
                     }
-                    else if (!numeratorLesson.isEmpty()) {
-                        String labelNum = isNumeratorWeek ? "<b>Ч: </b>" : "Ч: ";
-                        String labelDen = !isNumeratorWeek ? "<br><b>З: </b>" : "<br>З: ";
-                        selectedLesson = labelNum + numeratorLesson + labelDen + denominatorLesson;
+                    if (finalBuilder.length() == 0) {
+                        finalBuilder = selectedLesson;
                     }
 
-                    schedule.add(selectedLesson);
+                    schedule.add(finalBuilder);
                 }
             }
+
         } catch (IOException e) {
             e.printStackTrace();
         }
         return schedule;
+    }
+
+    private String getSafeText(Element parent, String selector, String fallback) {
+        Element el = parent.selectFirst(selector);
+        return el != null ? el.text() : fallback;
     }
 }

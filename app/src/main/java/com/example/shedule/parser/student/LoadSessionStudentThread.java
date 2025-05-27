@@ -22,18 +22,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoadSessionStudentThread extends Thread {
-    private final Spinner facultySpinner;
-    private final Spinner groupSpinner;
+    private String sessionUrl;
     private Document savedSessionDoc;
     private final MainActivity mainActivity;
     private final FacultySiteName facultySiteName;
     private final TableLayout sessionTable;
     private final LinearLayout sessionLayout;
 
-    public LoadSessionStudentThread(Spinner facultySpinner, Spinner groupSpinner, Document savedSessionDoc,
+    public LoadSessionStudentThread(String sessionUrl, Document savedSessionDoc,
                                     MainActivity mainActivity, TableLayout sessionTable, LinearLayout sessionLayout) {
-        this.facultySpinner = facultySpinner;
-        this.groupSpinner = groupSpinner;
+        this.sessionUrl = sessionUrl;
         this.savedSessionDoc = savedSessionDoc;
         this.mainActivity = mainActivity;
         this.facultySiteName = new FacultySiteName();
@@ -44,10 +42,6 @@ public class LoadSessionStudentThread extends Thread {
 
     @Override
     public void run() {
-        String faculty = facultySpinner.getSelectedItem().toString();
-        String group = groupSpinner.getSelectedItem().toString();
-        String facultyUrl = facultySiteName.showFacultyName(faculty);
-        String sessionUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
 
         Document sessionDoc;
         try {

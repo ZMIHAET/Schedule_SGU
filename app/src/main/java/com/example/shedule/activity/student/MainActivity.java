@@ -163,6 +163,28 @@ public class MainActivity extends AppCompatActivity {
 
         new ParseFacultiesThread(this, facultySpinner).start();
 
+        //обработка из расписания преподавателя
+        String enemyUrl = getIntent().getStringExtra("groupUrl");
+        if (enemyUrl != null){
+            returnButton.setVisibility(View.INVISIBLE);
+            loadLayout.setVisibility(View.GONE);
+
+            // делаем видимым schedule_layout, switch_layout и schedule_table
+            scheduleLayout.setVisibility(View.VISIBLE);
+            scheduleTable.setVisibility(View.VISIBLE);
+            scheduleScrollView.setVisibility(View.VISIBLE);
+            switchLayout.setVisibility(View.VISIBLE);
+            loadSessionLayout.setVisibility(View.VISIBLE);
+            numButton.setBackgroundResource(android.R.drawable.btn_default);
+            znamButton.setBackgroundResource(android.R.drawable.btn_default);
+            switchLek.setChecked(true);
+            switchPr.setChecked(true);
+            switchLab.setChecked(true);
+
+            // Генерируем расписание
+            scheduleGenerator(enemyUrl);
+        }
+
         facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -193,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
             switchLab.setChecked(true);
 
             // Генерируем расписание
-            ScheduleGenerator();
+            scheduleGenerator();
 
         });
 
@@ -228,7 +250,10 @@ public class MainActivity extends AppCompatActivity {
                 currentDayOfWeek = 6;
             }
             // выводим расписание
-            ScheduleGenerator();
+            if (enemyUrl == null)
+                scheduleGenerator();
+            else
+                scheduleGenerator(enemyUrl);
         });
 
         nextDayButton.setOnClickListener(v -> {
@@ -242,7 +267,10 @@ public class MainActivity extends AppCompatActivity {
                 currentDayOfWeek = 1;
             }
             // выводим расписание
-            ScheduleGenerator();
+            if (enemyUrl == null)
+                scheduleGenerator();
+            else
+                scheduleGenerator(enemyUrl);
         });
 
 
@@ -410,9 +438,20 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        loadSession.setOnClickListener(v ->
-                new LoadSessionStudentThread(facultySpinner, groupSpinner, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start()
-        );
+        loadSession.setOnClickListener(v -> {
+            String sessionUrl;
+            if (enemyUrl == null) {
+                String faculty = facultySpinner.getSelectedItem().toString();
+                String group = groupSpinner.getSelectedItem().toString();
+                String facultyUrl = facultySiteName.showFacultyName(faculty);
+                sessionUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group + "#session";
+            }
+            else
+                sessionUrl = enemyUrl;
+
+            new LoadSessionStudentThread(sessionUrl, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start();
+
+        });
 
         loadInfo.setOnClickListener(v -> {
             new ParseInfoThread(facultySpinner, MainActivity.this).start();
@@ -452,7 +491,7 @@ public class MainActivity extends AppCompatActivity {
         return savedLesson.contains("ЛЕКЦИЯ") && switchLek.isChecked() || savedLesson.contains("ПРАКТИКА") && switchPr.isChecked() || savedLesson.contains("ЛАБОРАТОРНАЯ") && switchLab.isChecked();
     }
 
-    private void ScheduleGenerator(){
+    private void scheduleGenerator(){
         String faculty = facultySpinner.getSelectedItem().toString();
         String group = groupSpinner.getSelectedItem().toString();
         Log.d("faculty", faculty);
@@ -460,6 +499,15 @@ public class MainActivity extends AppCompatActivity {
         String facultyUrl = facultySiteName.showFacultyName(faculty);
         String scheduleUrl = "https://www.sgu.ru/schedule/" + facultyUrl + "/do/" + group;
         new ParseScheduleStudentThread(MainActivity.this, scheduleUrl,
+                savedSchedules, currentDayOfWeek, dayOfWeekText,
+                lessons, isNumeratorWeek).start();
+        dayOfWeekText.setVisibility(View.VISIBLE);
+        prevDayButton.setVisibility(View.VISIBLE);
+        nextDayButton.setVisibility(View.VISIBLE);
+    }
+
+    private void scheduleGenerator(String Url){
+        new ParseScheduleStudentThread(MainActivity.this, Url,
                 savedSchedules, currentDayOfWeek, dayOfWeekText,
                 lessons, isNumeratorWeek).start();
         dayOfWeekText.setVisibility(View.VISIBLE);
