@@ -43,4 +43,5 @@
     <string name="del_from_favs">Удалить из избранного</string>
     <string name="department">Кафедра</string>
     <string name="logout">Выйти</string>
+    <string name="extra_info">Доп. информация</string>
 </resources>

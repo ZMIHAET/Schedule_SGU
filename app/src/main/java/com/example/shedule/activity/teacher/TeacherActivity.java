@@ -118,6 +118,9 @@ public class TeacherActivity extends AppCompatActivity {
 
         znamButton = findViewById(R.id.znam_button);
         numButton = findViewById(R.id.num_button);
+        numButton.setBackgroundResource(android.R.drawable.btn_default);
+        znamButton.setBackgroundResource(android.R.drawable.btn_default);
+
 
         prevDayButton = findViewById(R.id.prev_day_button);
         nextDayButton = findViewById(R.id.next_day_button);

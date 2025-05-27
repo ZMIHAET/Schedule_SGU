@@ -106,33 +106,66 @@ public class LoadSessionTeacherThread extends Thread{
         return sessionData;
     }
 
-    private TableRow createSessionRow(String date, String time, String info) {
-        TableRow row = new TableRow(teacherActivity);
-        row.setLayoutParams(new TableLayout.LayoutParams(TableLayout.LayoutParams.MATCH_PARENT, TableLayout.LayoutParams.WRAP_CONTENT));
-
-        TextView dateTextView = new TextView(teacherActivity);
-        dateTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-        dateTextView.setText(date);
-        row.addView(dateTextView);
-
-        TextView timeTextView = new TextView(teacherActivity);
-        timeTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
-        timeTextView.setText(time);
-        row.addView(timeTextView);
-
-        TextView infoTextView = new TextView(teacherActivity);
-        infoTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2));
-        infoTextView.setText(info);
-        row.addView(infoTextView);
-
-        return row;
-    }
-
     private void createSessionRows(List<String> sessionData) {
         sessionTable.removeAllViews();
 
+        // Поиск ближайшего экзамена
+        int closestIndex = -1;
+        long minDiff = Long.MAX_VALUE;
+
         for (int i = 0; i < sessionData.size(); i += 3) {
-            TableRow row = createSessionRow(sessionData.get(i), sessionData.get(i + 1), sessionData.get(i + 2));
+            try {
+                String dateTimeStr = sessionData.get(i); // дата + \n + время
+                String[] parts = dateTimeStr.split("\n");
+                String yearRaw = parts[1]; // "2025 г."
+                String year = yearRaw.replaceAll("\\D", ""); // "2025"
+                String datePart = parts[0] + ' ' + year;// пример: "24 мая 2025"
+                String timePart = sessionData.get(i + 1); // пример: "10:00"
+
+                java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("dd MMMM yyyy HH:mm", java.util.Locale.forLanguageTag("ru"));
+                java.util.Date parsedDate = format.parse(datePart + " " + timePart);
+
+                long diff = parsedDate.getTime() - System.currentTimeMillis();
+                if (diff > 0 && diff < minDiff) {
+                    minDiff = diff;
+                    closestIndex = i;
+                }
+            } catch (Exception e) {
+                e.printStackTrace(); // на случай ошибки разбора даты
+            }
+        }
+
+        // Создание строк таблицы
+        for (int i = 0; i < sessionData.size(); i += 3) {
+            TableRow row = new TableRow(teacherActivity);
+            row.setLayoutParams(new TableLayout.LayoutParams(
+                    TableLayout.LayoutParams.MATCH_PARENT,
+                    TableLayout.LayoutParams.WRAP_CONTENT
+            ));
+
+            TextView dateTextView = new TextView(teacherActivity);
+            dateTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+            dateTextView.setText(sessionData.get(i));
+
+            TextView timeTextView = new TextView(teacherActivity);
+            timeTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 1));
+            timeTextView.setText(sessionData.get(i + 1));
+
+            TextView infoTextView = new TextView(teacherActivity);
+            infoTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2));
+            infoTextView.setText(sessionData.get(i + 2));
+
+            // Если это ближайший экзамен — выделяем жирным
+            if (i == closestIndex) {
+                dateTextView.setTypeface(null, android.graphics.Typeface.BOLD);
+                timeTextView.setTypeface(null, android.graphics.Typeface.BOLD);
+                infoTextView.setTypeface(null, android.graphics.Typeface.BOLD);
+            }
+
+            row.addView(dateTextView);
+            row.addView(timeTextView);
+            row.addView(infoTextView);
+
             sessionTable.addView(row);
         }
 

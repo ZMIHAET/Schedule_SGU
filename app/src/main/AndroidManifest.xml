@@ -45,5 +45,11 @@
             android:name=".activity.teacher.DepartmentTeachersActivity"
             android:exported="true" />
 
+        <!-- Экран доп. информации -->
+        <activity
+            android:name=".activity.student.InfoActivity"
+            android:exported="true" />
+
+
     </application>
 </manifest>

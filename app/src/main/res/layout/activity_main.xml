@@ -522,6 +522,12 @@
                     android:layout_height="wrap_content"
                     android:layout_weight="0"
                     android:text="@string/session" />
+                <Button
+                    android:id="@+id/load_info"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="0"
+                    android:text="@string/extra_info" />
             </LinearLayout>
 
     </LinearLayout>
@@ -575,5 +581,7 @@
             android:layout_height="wrap_content"
             android:text="@string/back" />
     </LinearLayout>
+
+
 
 </androidx.constraintlayout.widget.ConstraintLayout>

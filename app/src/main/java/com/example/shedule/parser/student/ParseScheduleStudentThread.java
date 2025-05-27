@@ -56,7 +56,26 @@ public class ParseScheduleStudentThread extends Thread {
         }
 
         activity.runOnUiThread(() -> {
-            dayOfWeekText.setText(daysOfWeek[currentDayOfWeek]);
+            String dayText = daysOfWeek[currentDayOfWeek] + " (";
+
+            // Добавим жирную Ч или З
+            String weekLetter = isNumeratorWeek ? "числ" : "знам";
+            SpannableStringBuilder builder = new SpannableStringBuilder(dayText + weekLetter + ")");
+            int start = builder.length() - 5;
+            int end = builder.length() - 1;
+            builder.setSpan(
+                    new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                    builder.length() - 1, builder.length(),
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            // Фиолетовый цвет
+            builder.setSpan(
+                    new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#800080")),
+                    start, end,
+                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
+            );
+            dayOfWeekText.setText(builder);
+
             for (int i = 0; i < lessons.length; i++) {
                 if (i < schedule.size()) {
                     lessons[i].setText(schedule.get(i));
@@ -66,6 +85,7 @@ public class ParseScheduleStudentThread extends Thread {
                 }
             }
         });
+
     }
 
 

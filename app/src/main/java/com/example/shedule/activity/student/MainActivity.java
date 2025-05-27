@@ -33,6 +33,7 @@ import com.example.shedule.parser.student.LoadFavouriteTeachers;
 import com.example.shedule.parser.student.LoadSessionStudentThread;
 import com.example.shedule.parser.student.ParseFacultiesThread;
 import com.example.shedule.parser.student.ParseGroupsThread;
+import com.example.shedule.parser.student.ParseInfoThread;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
 import com.example.shedule.parser.teacher.checkTeachers.TeacherList;
 import com.example.shedule.parser.teacher.checkTeachers.TeacherParser;
@@ -45,10 +46,12 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 public class MainActivity extends AppCompatActivity {
-
-    private Button loadButton, prevDayButton, nextDayButton,
-            znamButton, numButton, loadSession, backButton, returnButton,
-    loadTeacherSchedule, favouritesTeachers, addTeacherButton, deleteTeacherButton, backFromFavs, logoutButton;
+    private Button prevDayButton;
+    private Button nextDayButton;
+    private Button znamButton;
+    private Button numButton;
+    private Button addTeacherButton;
+    private Button deleteTeacherButton;
     private NestedScrollView scheduleScrollView;
     private EditText addTeacherInput;
     private ListView favTeachersList;
@@ -65,8 +68,6 @@ public class MainActivity extends AppCompatActivity {
     private Document savedSessionDoc;
     private FacultySiteName facultySiteName;
     boolean isNumeratorWeek;
-    private String selectedTeacher = null;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -89,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
         facultySpinner = findViewById(R.id.faculty_spinner);
         groupSpinner = findViewById(R.id.group_spinner);
         courseSpinner = findViewById(R.id.course_spinner);
-        loadButton = findViewById(R.id.load_button);
+        Button loadButton = findViewById(R.id.load_button);
         dayOfWeekText = findViewById(R.id.day_of_week_text);
         prevDayButton = findViewById(R.id.prev_day_button);
         nextDayButton = findViewById(R.id.next_day_button);
@@ -106,10 +107,11 @@ public class MainActivity extends AppCompatActivity {
         List<String> favouritesList = LoadFavouriteTeachers.loadFavourites(this);
         ArrayAdapter<String> favouritesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favouritesList);
         favTeachersList.setAdapter(favouritesAdapter);
-        backFromFavs = findViewById(R.id.back_from_favs);
+        Button backFromFavs = findViewById(R.id.back_from_favs);
 
-        favouritesTeachers = findViewById(id.favourites_teachers);
-        loadSession = findViewById(id.load_session);
+        Button favouritesTeachers = findViewById(id.favourites_teachers);
+        Button loadSession = findViewById(id.load_session);
+        Button loadInfo = findViewById(id.load_info);
         switchLek = findViewById(R.id.switch_lek);
         switchPr = findViewById(R.id.switch_pr);
         switchLab = findViewById(R.id.switch_lab);
@@ -119,17 +121,17 @@ public class MainActivity extends AppCompatActivity {
 
         scheduleTable = findViewById(R.id.schedule_table);
         scheduleScrollView = findViewById(id.schedule_scroll_view);
-    
+
         switchLayout = findViewById(R.id.switch_layout);
         loadSessionLayout = findViewById(R.id.load_session_layout);
         sessionLayout = findViewById(id.session_layout);
         sessionTable = findViewById(R.id.session_table);
-        backButton = findViewById(R.id.back_button);
-        returnButton = findViewById(id.return_button);
-        loadTeacherSchedule = findViewById(R.id.load_teacher_schedule);
+        Button backButton = findViewById(R.id.back_button);
+        Button returnButton = findViewById(id.return_button);
+        Button loadTeacherSchedule = findViewById(R.id.load_teacher_schedule);
         facultySiteName = new FacultySiteName();
 
-        logoutButton = findViewById(R.id.logout_button);
+        Button logoutButton = findViewById(R.id.logout_button);
 
 
 
@@ -412,6 +414,9 @@ public class MainActivity extends AppCompatActivity {
                 new LoadSessionStudentThread(facultySpinner, groupSpinner, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start()
         );
 
+        loadInfo.setOnClickListener(v -> {
+            new ParseInfoThread(facultySpinner, MainActivity.this).start();
+        });
 
         backButton.setOnClickListener(v -> {
             dayOfWeekText.setVisibility(View.VISIBLE);
