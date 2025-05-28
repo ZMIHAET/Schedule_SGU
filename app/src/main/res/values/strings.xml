@@ -44,4 +44,9 @@
     <string name="department">Кафедра</string>
     <string name="logout">Выйти</string>
     <string name="extra_info">Доп. информация</string>
+    <string name="my_schedule">Моё расписание</string>
+    <string name="faculty">Факультет</string>
+    <string name="course">Курс</string>
+    <string name="group">Группа</string>
+    <string name="subgroups">Подгруппы:</string>
 </resources>

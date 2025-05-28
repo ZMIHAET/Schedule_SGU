@@ -20,6 +20,9 @@ import android.widget.TableLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.constraintlayout.widget.ConstraintLayout;
@@ -35,6 +38,7 @@ import com.example.shedule.parser.student.LoadSessionStudentThread;
 import com.example.shedule.parser.student.ParseFacultiesThread;
 import com.example.shedule.parser.student.ParseGroupsThread;
 import com.example.shedule.parser.student.ParseInfoThread;
+import com.example.shedule.parser.student.ParseOwnScheduleThread;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
 import com.example.shedule.parser.teacher.checkTeachers.TeacherList;
 import com.example.shedule.parser.teacher.checkTeachers.TeacherParser;
@@ -50,6 +54,7 @@ public class MainActivity extends AppCompatActivity {
     private Button backButton;
     private Button returnButton;
     private Button loadSession;
+    private Button ownButton;
     private Button prevDayButton;
     private Button nextDayButton;
     private Button znamButton;
@@ -72,6 +77,10 @@ public class MainActivity extends AppCompatActivity {
     private Document savedSessionDoc;
     private FacultySiteName facultySiteName;
     boolean isNumeratorWeek;
+    boolean isOwnSchedule = false;
+    private ActivityResultLauncher<Intent> ownScheduleLauncher;
+    private String scheduleOwnUrl;
+    private ArrayList<String> selectedSubgroups;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
         ArrayAdapter<String> favouritesAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, favouritesList);
         favTeachersList.setAdapter(favouritesAdapter);
         Button backFromFavs = findViewById(R.id.back_from_favs);
+
+        ownButton = findViewById(id.own_button);
 
         Button favouritesTeachers = findViewById(id.favourites_teachers);
         loadSession = findViewById(id.load_session);
@@ -189,6 +200,45 @@ public class MainActivity extends AppCompatActivity {
             scheduleGenerator(enemyUrl);
         }
 
+        ownScheduleLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
+                        Intent data = result.getData();
+                        scheduleOwnUrl = data.getStringExtra("scheduleUrl");
+                        selectedSubgroups = data.getStringArrayListExtra("subgroups");
+                        isOwnSchedule = true;
+
+                        assert scheduleOwnUrl != null;
+                        Log.d("ScheduleURL", scheduleOwnUrl);
+                        assert selectedSubgroups != null;
+                        Log.d("SelectedSubgroups", selectedSubgroups.toString());
+
+                        // скрываем load_layout
+                        loadLayout.setVisibility(View.GONE);
+
+                        if (!scheduleOwnUrl.contains("/zo/")){
+                            // делаем видимым schedule_layout, switch_layout и schedule_table
+                            scheduleLayout.setVisibility(View.VISIBLE);
+                            scheduleTable.setVisibility(View.VISIBLE);
+                            scheduleScrollView.setVisibility(View.VISIBLE);
+                            switchLayout.setVisibility(View.VISIBLE);
+                            loadSessionLayout.setVisibility(View.VISIBLE);
+                            numButton.setBackgroundResource(android.R.drawable.btn_default);
+                            znamButton.setBackgroundResource(android.R.drawable.btn_default);
+                            switchLek.setChecked(true);
+                            switchPr.setChecked(true);
+                            switchLab.setChecked(true);
+                            scheduleGenerator(scheduleOwnUrl, selectedSubgroups);
+                        }
+                        else
+                            new LoadSessionStudentThread(scheduleOwnUrl, savedSessionDoc, MainActivity.this, sessionTable, sessionLayout).start();
+
+                    }
+                }
+        );
+
+
         facultySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
@@ -221,11 +271,29 @@ public class MainActivity extends AppCompatActivity {
                 switchLab.setChecked(true);
             }
 
-
             // Генерируем расписание
             scheduleGenerator();
 
         });
+
+        ownButton.setOnClickListener(v ->{
+            SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+            String faculty = prefs.getString("faculty", null);
+            String course = prefs.getString("course", null);
+            String group = prefs.getString("group", null);
+
+            if (faculty != null && course != null && group != null) {
+                Intent intent = new Intent(MainActivity.this, OwnScheduleActivity.class);
+                intent.putExtra("faculty", faculty);
+                intent.putExtra("course", course);
+                intent.putExtra("group", group);
+                ownScheduleLauncher.launch(intent);
+            } else {
+                Toast.makeText(MainActivity.this, "Данные отсутствуют", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+
 
         loadTeacherSchedule.setOnClickListener(v -> {
             Intent intent = new Intent(MainActivity.this, TeacherActivity.class);
@@ -257,8 +325,13 @@ public class MainActivity extends AppCompatActivity {
             if (currentDayOfWeek < 1) {
                 currentDayOfWeek = 6;
             }
+            Log.d("sch", String.valueOf(isOwnSchedule));
             // выводим расписание
-            if (enemyUrl == null)
+
+
+            if (isOwnSchedule)
+                scheduleGenerator(scheduleOwnUrl, selectedSubgroups);
+            else if (enemyUrl == null)
                 scheduleGenerator();
             else
                 scheduleGenerator(enemyUrl);
@@ -275,7 +348,9 @@ public class MainActivity extends AppCompatActivity {
                 currentDayOfWeek = 1;
             }
             // выводим расписание
-            if (enemyUrl == null)
+            if (isOwnSchedule)
+                scheduleGenerator(scheduleOwnUrl, selectedSubgroups);
+            else if (enemyUrl == null)
                 scheduleGenerator();
             else
                 scheduleGenerator(enemyUrl);
@@ -448,7 +523,10 @@ public class MainActivity extends AppCompatActivity {
 
         loadSession.setOnClickListener(v -> {
             String sessionUrl;
-            if (enemyUrl == null) {
+            if (isOwnSchedule){
+                sessionUrl = scheduleOwnUrl;
+            }
+            else if (enemyUrl == null) {
                 String faculty = facultySpinner.getSelectedItem().toString();
                 String group = groupSpinner.getSelectedItem().toString();
                 String facultyUrl = facultySiteName.showFacultyName(faculty);
@@ -462,7 +540,15 @@ public class MainActivity extends AppCompatActivity {
         });
 
         loadInfo.setOnClickListener(v -> {
-            new ParseInfoThread(facultySpinner, MainActivity.this).start();
+            String faculty;
+            if (isOwnSchedule){
+                SharedPreferences prefs = getSharedPreferences("auth", MODE_PRIVATE);
+                faculty = prefs.getString("faculty", null);
+            }
+            else {
+                faculty = facultySpinner.getSelectedItem().toString();
+            }
+            new ParseInfoThread(faculty, MainActivity.this).start();
         });
 
         backButton.setOnClickListener(v -> {
@@ -495,6 +581,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0; i < 7; i++) {
                 savedSchedules.add(new ArrayList<>());
             }
+            isOwnSchedule = false;
             savedSessionDoc = new Document("");
             savedSessionData.clear();
             dayOfWeekText.setVisibility(View.GONE);
@@ -541,6 +628,15 @@ public class MainActivity extends AppCompatActivity {
             prevDayButton.setVisibility(View.VISIBLE);
             nextDayButton.setVisibility(View.VISIBLE);
         }
+    }
+
+    private void scheduleGenerator(String Url, ArrayList<String> selectedSubgroups){
+        new ParseOwnScheduleThread(MainActivity.this, Url,
+                savedSchedules, currentDayOfWeek, dayOfWeekText,
+                lessons, isNumeratorWeek, selectedSubgroups).start();
+        dayOfWeekText.setVisibility(View.VISIBLE);
+        prevDayButton.setVisibility(View.VISIBLE);
+        nextDayButton.setVisibility(View.VISIBLE);
     }
 
     private void scheduleGenerator(String Url){

@@ -16,11 +16,11 @@ import org.jsoup.select.Elements;
 import java.io.IOException;
 
 public class ParseInfoThread extends Thread {
-    private final Spinner facultySpinner;
+    private final String faculty;
     private final Activity activity;
 
-    public ParseInfoThread(Spinner facultySpinner, Activity activity) {
-        this.facultySpinner = facultySpinner;
+    public ParseInfoThread(String faculty, Activity activity) {
+        this.faculty = faculty;
         this.activity = activity;
     }
 
@@ -28,13 +28,12 @@ public class ParseInfoThread extends Thread {
     public void run() {
         try {
             Document doc = Jsoup.connect("https://www.sgu.ru/schedule").get();
-            String selectedFaculty = facultySpinner.getSelectedItem().toString();
 
             Elements containers = doc.select(".accordion-container");
 
             for (Element container : containers) {
                 Element title = container.selectFirst("h3.accordion__header");
-                if (title != null && title.text().trim().equalsIgnoreCase(selectedFaculty)) {
+                if (title != null && title.text().trim().equalsIgnoreCase(faculty)) {
                     Element info = container.selectFirst("div.schedule__info span");
                     if (info != null) {
                         String infoText = info.text().trim();

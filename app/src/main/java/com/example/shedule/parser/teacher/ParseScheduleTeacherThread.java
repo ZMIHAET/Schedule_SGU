@@ -156,13 +156,13 @@ public class ParseScheduleTeacherThread extends Thread {
 
                         switch (weekType) {
                             case "Ч":
-                                if (isNumeratorWeek)
-                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                /*if (isNumeratorWeek)
+                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);*/
                                 numeratorLesson.append(lessonBuilder);
                                 break;
                             case "З":
-                                if (!isNumeratorWeek)
-                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                                /*if (!isNumeratorWeek)
+                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);*/
                                 denominatorLesson.append(lessonBuilder);
                                 break;
                             default:

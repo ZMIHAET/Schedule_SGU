@@ -50,6 +50,11 @@
             android:name=".activity.student.InfoActivity"
             android:exported="true" />
 
+        <!-- Экран для "моего" расписания -->
+        <activity
+            android:name=".activity.student.OwnScheduleActivity"
+            android:exported="true"/>
+
 
     </application>
 </manifest>

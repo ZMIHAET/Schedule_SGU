@@ -2,7 +2,9 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:focusableInTouchMode="true"
+    android:clickable="true">
 
     <EditText
         android:id="@+id/editTextFirstName"
@@ -31,6 +33,22 @@
         android:layout_height="wrap_content"
         android:hint="@string/password"
         android:inputType="textVisiblePassword" />
+
+    <Spinner
+        android:id="@+id/faculty_spinner"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:layout_height="50dp" />
+    <Spinner
+        android:id="@+id/course_spinner"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:layout_height="50dp" />
+    <Spinner
+        android:id="@+id/group_spinner"
+        android:layout_width="match_parent"
+        android:visibility="gone"
+        android:layout_height="50dp" />
 
     <!-- Группа радио-кнопок -->
     <RadioGroup

@@ -15,33 +15,6 @@
         android:orientation="vertical"
         app:layout_constraintTop_toTopOf="parent">
 
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/choose_fac"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:id="@+id/faculty_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="50dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="50dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="8dp"
-            android:text="@string/choose_course"
-            android:textStyle="bold" />
-
-        <Spinner
-            android:id="@+id/course_spinner"
-            android:layout_width="match_parent"
-            android:layout_height="50dp" />
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="50dp"
@@ -49,6 +22,16 @@
             android:layout_marginBottom="8dp"
             android:text="@string/choose_gr"
             android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/faculty_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+
+        <Spinner
+            android:id="@+id/course_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
 
         <Spinner
             android:id="@+id/group_spinner"
@@ -61,6 +44,13 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:text="@string/load_schedule" />
+
+        <Button
+            android:id="@+id/own_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/my_schedule" />
 
         <Button
             android:id="@+id/load_teacher_schedule"

@@ -20,10 +20,9 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
-public class ParseScheduleStudentThread extends Thread {
+public class ParseOwnScheduleThread extends Thread{
     private final Activity activity;
     private final String scheduleUrl;
     private final List<ArrayList<String>> savedSchedules;
@@ -32,10 +31,11 @@ public class ParseScheduleStudentThread extends Thread {
     private final TextView dayOfWeekText;
     private final TextView[] lessons;
     private final boolean isNumeratorWeek;
+    private final ArrayList<String> selectedSubgroups;
 
-    public ParseScheduleStudentThread(Activity activity, String scheduleUrl,
-                                      List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
-                                      TextView dayOfWeekText, TextView[] lessons, boolean isNumeratorWeek) {
+    public ParseOwnScheduleThread(Activity activity, String scheduleUrl,
+                                  List<ArrayList<String>> savedSchedules, int currentDayOfWeek,
+                                  TextView dayOfWeekText, TextView[] lessons, boolean isNumeratorWeek, ArrayList<String> selectedSubgroups) {
         this.activity = activity;
         this.scheduleUrl = scheduleUrl;
         this.savedSchedules = savedSchedules;
@@ -43,6 +43,7 @@ public class ParseScheduleStudentThread extends Thread {
         this.dayOfWeekText = dayOfWeekText;
         this.lessons = lessons;
         this.isNumeratorWeek = isNumeratorWeek;
+        this.selectedSubgroups = selectedSubgroups;
     }
 
     @Override
@@ -110,6 +111,10 @@ public class ParseScheduleStudentThread extends Thread {
                     for (Element lessonElement : lessonElements) {
                         String type = getTextSafe(lessonElement, "div.schedule-table__lesson-props div", "Не указан тип");
                         String subgr = getTextSafe(lessonElement, "div.schedule-table__lesson-uncertain", "");
+                        // Пропуск, если есть подгруппа, но она не выбрана
+                        if (!subgr.isEmpty() && !selectedSubgroups.contains(subgr)) {
+                            continue;
+                        }
                         String lessonName = getTextSafe(lessonElement, "div.schedule-table__lesson-name", "Без названия");
                         String teacherRaw = getTextSafe(lessonElement, "div.schedule-table__lesson-teacher span, div.schedule-table__lesson-teacher a", "Не указан преподаватель");
                         String room = getTextSafe(lessonElement, "div.schedule-table__lesson-room span", "—");
