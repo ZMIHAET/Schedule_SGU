@@ -552,20 +552,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         backButton.setOnClickListener(v -> {
-            String group = groupSpinner.getSelectedItem().toString();
-            if (group.contains("(зо)")){
-                savedSessionDoc = new Document("");
-                savedSessionData.clear();
-                dayOfWeekText.setVisibility(View.GONE);
-                scheduleLayout.setVisibility(View.GONE);
-                scheduleTable.setVisibility(View.GONE);
-                scheduleScrollView.setVisibility(View.GONE);
-                switchLayout.setVisibility(View.GONE);
-                loadSessionLayout.setVisibility(View.GONE);
-                sessionLayout.setVisibility(View.GONE);
-                loadLayout.setVisibility(View.VISIBLE);
-            }
-            else {
+            if (isOwnSchedule){
                 dayOfWeekText.setVisibility(View.VISIBLE);
                 scheduleLayout.setVisibility(View.VISIBLE);
                 scheduleTable.setVisibility(View.VISIBLE);
@@ -573,6 +560,29 @@ public class MainActivity extends AppCompatActivity {
                 switchLayout.setVisibility(View.VISIBLE);
                 loadSessionLayout.setVisibility(View.VISIBLE);
                 sessionLayout.setVisibility(View.GONE);
+            }
+            else {
+                String group = groupSpinner.getSelectedItem().toString();
+                if (group.contains("(зо)")) {
+                    savedSessionDoc = new Document("");
+                    savedSessionData.clear();
+                    dayOfWeekText.setVisibility(View.GONE);
+                    scheduleLayout.setVisibility(View.GONE);
+                    scheduleTable.setVisibility(View.GONE);
+                    scheduleScrollView.setVisibility(View.GONE);
+                    switchLayout.setVisibility(View.GONE);
+                    loadSessionLayout.setVisibility(View.GONE);
+                    sessionLayout.setVisibility(View.GONE);
+                    loadLayout.setVisibility(View.VISIBLE);
+                } else {
+                    dayOfWeekText.setVisibility(View.VISIBLE);
+                    scheduleLayout.setVisibility(View.VISIBLE);
+                    scheduleTable.setVisibility(View.VISIBLE);
+                    scheduleScrollView.setVisibility(View.VISIBLE);
+                    switchLayout.setVisibility(View.VISIBLE);
+                    loadSessionLayout.setVisibility(View.VISIBLE);
+                    sessionLayout.setVisibility(View.GONE);
+                }
             }
         });
 
