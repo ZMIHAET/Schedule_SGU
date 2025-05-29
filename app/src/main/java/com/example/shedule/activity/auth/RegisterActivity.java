@@ -41,17 +41,16 @@ public class RegisterActivity extends AppCompatActivity {
 
         new Thread(() -> {
             TeacherParser.parseTeachers(getApplicationContext(), "https://www.sgu.ru/person");
-
-            // После парсинга включаем кнопку в UI-потоке
             runOnUiThread(() -> btnRegister.setEnabled(true));
         }).start();
+
         btnRegister.setOnClickListener(v -> registerUser());
     }
 
     private void registerUser() {
         String firstName = editTextFirstName.getText().toString().trim();
         String lastName = editTextLastName.getText().toString().trim();
-        String patronymic = editTextPatronymic.getText().toString().trim();
+        String patronymic = editTextPatronymic.getText().toString().trim(); // может быть пустым
         String password = editTextPassword.getText().toString().trim();
 
         int selectedId = radioGroupRole.getCheckedRadioButtonId();
@@ -61,33 +60,34 @@ public class RegisterActivity extends AppCompatActivity {
         }
         String role = ((RadioButton) findViewById(selectedId)).getText().toString();
 
-        if (firstName.isEmpty() || lastName.isEmpty() || patronymic.isEmpty() || password.isEmpty()) {
-            Toast.makeText(this, "Заполните все поля", Toast.LENGTH_SHORT).show();
+        if (firstName.isEmpty() || lastName.isEmpty() || password.isEmpty()) {
+            Toast.makeText(this, "Имя, фамилия и пароль обязательны", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Если роль "Преподаватель", парсим сайт и проверяем наличие
+        // Проверка преподавателя на наличие в списке
         if (role.equalsIgnoreCase("Преподаватель")) {
-            String fullName = lastName + " " + firstName + " " + patronymic;
+            String fullName = patronymic.isEmpty()
+                    ? lastName + " " + firstName
+                    : lastName + " " + firstName + " " + patronymic;
+
             boolean isTeacherExists = TeacherList.containsTeacher(fullName);
             if (!isTeacherExists) {
                 Toast.makeText(this, "Преподаватель не найден на сайте", Toast.LENGTH_LONG).show();
                 return;
             }
-            saveUserToDatabase(firstName, lastName, patronymic, password, role);
-        } else {
-            saveUserToDatabase(firstName, lastName, patronymic, password, role);
         }
+
+        saveUserToDatabase(firstName, lastName, patronymic, password, role);
     }
 
-    // Отдельный метод для сохранения пользователя в БД
     private void saveUserToDatabase(String firstName, String lastName, String patronymic, String password, String role) {
         String hashedPassword = PasswordHasher.hashPassword(password);
         SQLiteDatabase db = dbHelper.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(DatabaseHelper.COLUMN_FIRST_NAME, firstName);
         values.put(DatabaseHelper.COLUMN_LAST_NAME, lastName);
-        values.put(DatabaseHelper.COLUMN_PATRONYMIC, patronymic);
+        values.put(DatabaseHelper.COLUMN_PATRONYMIC, patronymic); // можно сохранить пустое
         values.put(DatabaseHelper.COLUMN_PASSWORD, hashedPassword);
         values.put(DatabaseHelper.COLUMN_ROLE, role);
 
@@ -103,5 +103,4 @@ public class RegisterActivity extends AppCompatActivity {
             finish();
         }
     }
-
 }

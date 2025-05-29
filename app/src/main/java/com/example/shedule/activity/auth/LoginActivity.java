@@ -135,11 +135,25 @@ public class LoginActivity extends AppCompatActivity {
 
 
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " +
-                        DatabaseHelper.COLUMN_FIRST_NAME + "=? AND " +
-                        DatabaseHelper.COLUMN_LAST_NAME + "=? AND " +
-                        DatabaseHelper.COLUMN_PATRONYMIC + "=?",
-                new String[]{firstName, lastName, patronymic});
+        String query;
+        String[] args;
+
+        if (patronymic.isEmpty()) {
+            query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " +
+                    DatabaseHelper.COLUMN_FIRST_NAME + "=? AND " +
+                    DatabaseHelper.COLUMN_LAST_NAME + "=? AND " +
+                    "(" + DatabaseHelper.COLUMN_PATRONYMIC + " IS NULL OR " + DatabaseHelper.COLUMN_PATRONYMIC + "='')";
+            args = new String[]{firstName, lastName};
+        } else {
+            query = "SELECT * FROM " + DatabaseHelper.TABLE_USERS + " WHERE " +
+                    DatabaseHelper.COLUMN_FIRST_NAME + "=? AND " +
+                    DatabaseHelper.COLUMN_LAST_NAME + "=? AND " +
+                    DatabaseHelper.COLUMN_PATRONYMIC + "=?";
+            args = new String[]{firstName, lastName, patronymic};
+        }
+
+        Cursor cursor = db.rawQuery(query, args);
+
 
         if (cursor.moveToFirst()) {
             String storedPassword = cursor.getString(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_PASSWORD));
