@@ -25,6 +25,11 @@ public class LoadSessionTeacherThread extends Thread{
     private final TableLayout sessionTable;
     private final LinearLayout sessionLayout;
     private final String sessionUrl;
+    private static final String PREFS_NAME = "session_prefs";
+    private static final String KEY_SESSION_DATA = "session_teacher_data";
+    private static final String KEY_SESSION_TIMESTAMP = "session_teacher_timestamp";
+    private static final long CACHE_DURATION = 7L * 24 * 60 * 60 * 1000; // 7 дней
+
 
     public LoadSessionTeacherThread(TeacherActivity teacherActivity, TableLayout sessionTable, LinearLayout sessionLayout, String sessionUrl) {
         this.teacherActivity = teacherActivity;
@@ -36,6 +41,18 @@ public class LoadSessionTeacherThread extends Thread{
 
     @Override
     public void run() {
+        String cachedData = teacherActivity.getSharedPreferences(PREFS_NAME, 0).getString(KEY_SESSION_DATA, null);
+        long savedTime = teacherActivity.getSharedPreferences(PREFS_NAME, 0).getLong(KEY_SESSION_TIMESTAMP, 0);
+        long now = System.currentTimeMillis();
+
+        if (cachedData != null && now - savedTime < CACHE_DURATION) {
+            List<String> sessionData = deserializeSessionData(cachedData);
+            new Handler(Looper.getMainLooper()).post(() -> {
+                createSessionRows(sessionData);
+                teacherActivity.showSessionLayout();
+            });
+            return;
+        }
 
         Document sessionDoc;
         try {
@@ -52,15 +69,37 @@ public class LoadSessionTeacherThread extends Thread{
             return;
         }
 
-        // Парсим данные
         List<String> sessionData = parseSession(sessionDoc);
 
-        // Обновляем UI в главном потоке
+        saveSessionData(sessionData);
+
         new Handler(Looper.getMainLooper()).post(() -> {
             createSessionRows(sessionData);
             teacherActivity.showSessionLayout();
         });
     }
+
+    private void saveSessionData(List<String> data) {
+        String serialized = serializeSessionData(data);
+        teacherActivity.getSharedPreferences(PREFS_NAME, 0).edit()
+                .putString(KEY_SESSION_DATA, serialized)
+                .putLong(KEY_SESSION_TIMESTAMP, System.currentTimeMillis())
+                .apply();
+    }
+
+    private String serializeSessionData(List<String> data) {
+        return android.text.TextUtils.join("||", data);
+    }
+
+    private List<String> deserializeSessionData(String serialized) {
+        String[] parts = serialized.split("\\|\\|");
+        List<String> list = new ArrayList<>();
+        for (String s : parts) {
+            list.add(s);
+        }
+        return list;
+    }
+
     private List<String> parseSession(Document doc) {
         List<String> sessionData = new ArrayList<>();
 

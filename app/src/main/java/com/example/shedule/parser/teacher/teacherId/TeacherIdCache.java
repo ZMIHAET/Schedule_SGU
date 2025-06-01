@@ -93,4 +93,9 @@ public class TeacherIdCache {
     public static boolean isInitialized() {
         return initialized;
     }
+
+    public static String[] getAllTeachers() {
+        return teacherIdMap.keySet().toArray(new String[0]);
+    }
+
 }

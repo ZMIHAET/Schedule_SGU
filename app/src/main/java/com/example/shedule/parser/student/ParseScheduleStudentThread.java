@@ -2,17 +2,26 @@ package com.example.shedule.parser.student;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
 import android.text.Spanned;
 import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
+import android.text.style.ForegroundColorSpan;
+import android.text.style.StyleSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.shedule.DB.DatabaseHelper;
 import com.example.shedule.activity.teacher.TeacherActivity;
 import com.example.shedule.parser.teacher.teacherId.TeacherIdCache;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
@@ -20,7 +29,6 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.List;
 
 public class ParseScheduleStudentThread extends Thread {
@@ -47,34 +55,34 @@ public class ParseScheduleStudentThread extends Thread {
 
     @Override
     public void run() {
-        ArrayList<SpannableStringBuilder> schedule = parseSchedule(scheduleUrl);
+        DatabaseHelper dbHelper = new DatabaseHelper(activity);
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        // Сохраняем расписание в savedSchedules
-        savedSchedules.set(currentDayOfWeek - 1, new ArrayList<>());
-        for (SpannableStringBuilder s : schedule) {
-            savedSchedules.get(currentDayOfWeek - 1).add(s.toString()); // сохраняем как строку
+        String cachedJson = dbHelper.getCachedSchedule(db, scheduleUrl, currentDayOfWeek);
+        ArrayList<SpannableStringBuilder> schedule;
+
+        if (cachedJson != null) {
+            schedule = deserializeSchedule(cachedJson);
+        } else {
+            schedule = parseSchedule(scheduleUrl);
+            String jsonToSave = serializeSchedule(schedule);
+            dbHelper.saveScheduleToCache(db, scheduleUrl, currentDayOfWeek, jsonToSave);
         }
 
-        activity.runOnUiThread(() -> {
-            String dayText = daysOfWeek[currentDayOfWeek] + " (";
+        savedSchedules.set(currentDayOfWeek - 1, new ArrayList<>());
+        for (SpannableStringBuilder s : schedule) {
+            savedSchedules.get(currentDayOfWeek - 1).add(s.toString());
+        }
 
-            // Добавим жирную Ч или З
-            String weekLetter = isNumeratorWeek ? "числ" : "знам";
-            SpannableStringBuilder builder = new SpannableStringBuilder(dayText + weekLetter + ")");
-            int start = builder.length() - 5;
-            int end = builder.length() - 1;
-            builder.setSpan(
-                    new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-                    builder.length() - 1, builder.length(),
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            // Фиолетовый цвет
-            builder.setSpan(
-                    new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#800080")),
-                    start, end,
-                    Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-            );
-            dayOfWeekText.setText(builder);
+        db.close();
+
+        activity.runOnUiThread(() -> {
+            SpannableStringBuilder header = new SpannableStringBuilder(
+                    daysOfWeek[currentDayOfWeek] + " (" + (isNumeratorWeek ? "числ" : "знам") + ")");
+            header.setSpan(new StyleSpan(Typeface.BOLD), header.length() - 1, header.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            header.setSpan(new ForegroundColorSpan(Color.parseColor("#800080")),
+                    header.length() - 5, header.length() - 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+            dayOfWeekText.setText(header);
 
             for (int i = 0; i < lessons.length; i++) {
                 if (i < schedule.size()) {
@@ -85,9 +93,7 @@ public class ParseScheduleStudentThread extends Thread {
                 }
             }
         });
-
     }
-
 
     private ArrayList<SpannableStringBuilder> parseSchedule(String scheduleUrl) {
         Log.d("scheduleUrl", scheduleUrl);
@@ -125,40 +131,27 @@ public class ParseScheduleStudentThread extends Thread {
                         fullLesson.append(teacherSpan);
                         fullLesson.append(suffix);
 
-                        String weekType = lessonElement.selectFirst("div.lesson-prop__num") != null ? "Ч" :
-                                lessonElement.selectFirst("div.lesson-prop__denom") != null ? "З" : "";
+                        // Определение числителя / знаменателя
+                        boolean isNumerator = lessonElement.selectFirst("div.lesson-prop__num") != null;
+                        boolean isDenominator = lessonElement.selectFirst("div.lesson-prop__denom") != null;
 
-                        switch (weekType) {
-                            case "Ч":
-                                //if (isNumeratorWeek) fullLesson.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, fullLesson.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                numeratorBuilder.append(fullLesson);
-                                break;
-                            case "З":
-                                //if (!isNumeratorWeek) fullLesson.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD), 0, fullLesson.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                                denominatorBuilder.append(fullLesson);
-                                break;
-                            default:
-                                selectedLessonBuilder.append(fullLesson);
+                        if (isNumerator) {
+                            numeratorBuilder.append(fullLesson);
+                        } else if (isDenominator) {
+                            denominatorBuilder.append(fullLesson);
+                        } else {
+                            selectedLessonBuilder.append(fullLesson);
                         }
                     }
 
                     SpannableStringBuilder finalBuilder = new SpannableStringBuilder();
                     if (numeratorBuilder.length() > 0 || denominatorBuilder.length() > 0) {
-                        //int end = 0;
                         if (numeratorBuilder.length() > 0) {
                             finalBuilder.append("Ч: ");
-                            /*if (isNumeratorWeek) {
-                                finalBuilder.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-                                        0, finalBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
-                            }*/
                             finalBuilder.append(numeratorBuilder);
-                            //end = finalBuilder.length();
                         }
                         if (denominatorBuilder.length() > 0) {
-                            finalBuilder.append("З: " );
-                            /*if (!isNumeratorWeek)
-                                finalBuilder.setSpan(new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-                                        end, finalBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);*/
+                            finalBuilder.append("З: ");
                             finalBuilder.append(denominatorBuilder);
                         }
                     } else {
@@ -174,8 +167,48 @@ public class ParseScheduleStudentThread extends Thread {
         return schedule;
     }
 
-    private String getTextSafe(Element root, String selector, String fallback) {
-        Element el = root.selectFirst(selector);
+    private String serializeSchedule(ArrayList<SpannableStringBuilder> list) {
+        JSONArray array = new JSONArray();
+        for (SpannableStringBuilder builder : list) {
+            array.put(builder.toString());
+        }
+        return array.toString();
+    }
+
+    private ArrayList<SpannableStringBuilder> deserializeSchedule(String json) {
+        ArrayList<SpannableStringBuilder> result = new ArrayList<>();
+        try {
+            JSONArray array = new JSONArray(json);
+            for (int i = 0; i < array.length(); i++) {
+                String text = array.getString(i);
+                SpannableStringBuilder builder = new SpannableStringBuilder(text);
+                for (String name : TeacherIdCache.getAllTeachers()) {
+                    int start = text.indexOf(name);
+                    if (start != -1) {
+                        int end = start + name.length();
+                        String id = TeacherIdCache.getTeacherId(name);
+                        if (id != null) {
+                            builder.setSpan(new ClickableSpan() {
+                                @Override
+                                public void onClick(View widget) {
+                                    Intent intent = new Intent(activity, TeacherActivity.class);
+                                    intent.putExtra("teacherUrl", "https://www.sgu.ru/schedule/teacher/" + id);
+                                    activity.startActivity(intent);
+                                }
+                            }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        }
+                    }
+                }
+                result.add(builder);
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return result;
+    }
+
+    private String getTextSafe(Element parent, String selector, String fallback) {
+        Element el = parent.selectFirst(selector);
         return el != null ? el.text() : fallback;
     }
 

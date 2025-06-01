@@ -2,6 +2,7 @@ package com.example.shedule.parser.teacher;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.text.SpannableStringBuilder;
@@ -10,9 +11,11 @@ import android.text.method.LinkMovementMethod;
 import android.text.style.ClickableSpan;
 import android.text.style.ForegroundColorSpan;
 import android.text.style.StyleSpan;
+import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
+import com.example.shedule.DB.DatabaseHelper;
 import com.example.shedule.activity.student.MainActivity;
 import com.example.shedule.parser.student.FacultySiteName;
 
@@ -23,6 +26,7 @@ import org.jsoup.select.Elements;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,7 +42,7 @@ public class ParseScheduleTeacherThread extends Thread {
     private final boolean isNumeratorWeek;
 
     public ParseScheduleTeacherThread(Activity activity, String scheduleUrl,
-                                      String defaultUrl,  List<ArrayList<String>> savedSchedules,
+                                      String defaultUrl, List<ArrayList<String>> savedSchedules,
                                       int currentDayOfWeek, TextView dayOfWeekText, TextView[] lessons,
                                       boolean isNumeratorWeek) {
         this.activity = activity;
@@ -54,33 +58,38 @@ public class ParseScheduleTeacherThread extends Thread {
     @Override
     public void run() {
         if (!Objects.equals(scheduleUrl, "https://www.sgu.runull")) {
-            ArrayList<SpannableStringBuilder> schedule = parseSchedule(scheduleUrl);
+            DatabaseHelper dbHelper = new DatabaseHelper(activity);
+/*            SQLiteDatabase db1 = dbHelper.getWritableDatabase();
+            dbHelper.clearScheduleCache(db1);
+            db1.close();*/
+            SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-            // Сохраняем как строки
-            savedSchedules.set(currentDayOfWeek - 1, new ArrayList<>());
-            for (SpannableStringBuilder s : schedule) {
-                savedSchedules.get(currentDayOfWeek - 1).add(s.toString());
+            String cachedData = dbHelper.getCachedSchedule(db, scheduleUrl, currentDayOfWeek);
+            if (cachedData != null) {
+                activity.runOnUiThread(() -> applyScheduleFromCache(cachedData));
+                return;
             }
 
-            activity.runOnUiThread(() -> {
-                String dayText = daysOfWeek[currentDayOfWeek] + " (";
+            ArrayList<SpannableStringBuilder> schedule = parseSchedule(scheduleUrl);
 
-                // Добавим жирную Ч или З
+            savedSchedules.set(currentDayOfWeek - 1, new ArrayList<>());
+            StringBuilder stringBuilder = new StringBuilder();
+            for (SpannableStringBuilder s : schedule) {
+                savedSchedules.get(currentDayOfWeek - 1).add(s.toString());
+                stringBuilder.append(s.toString()).append("\n⏎⏎\n");
+            }
+
+            SQLiteDatabase writableDb = dbHelper.getWritableDatabase();
+            dbHelper.saveScheduleToCache(writableDb, scheduleUrl, currentDayOfWeek, stringBuilder.toString());
+
+            activity.runOnUiThread(() -> {
+                SpannableStringBuilder builder = new SpannableStringBuilder(daysOfWeek[currentDayOfWeek] + " (");
                 String weekLetter = isNumeratorWeek ? "числ" : "знам";
-                SpannableStringBuilder builder = new SpannableStringBuilder(dayText + weekLetter + ")");
+                builder.append(weekLetter).append(")");
                 int start = builder.length() - 5;
                 int end = builder.length() - 1;
-                builder.setSpan(
-                        new android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
-                        builder.length() - 1, builder.length(),
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                );
-                // Фиолетовый цвет
-                builder.setSpan(
-                        new android.text.style.ForegroundColorSpan(android.graphics.Color.parseColor("#800080")),
-                        start, end,
-                        Spanned.SPAN_EXCLUSIVE_EXCLUSIVE
-                );
+                builder.setSpan(new StyleSpan(Typeface.BOLD), end, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                builder.setSpan(new ForegroundColorSpan(Color.parseColor("#800080")), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
                 dayOfWeekText.setText(builder);
 
                 for (int i = 0; i < lessons.length; i++) {
@@ -92,9 +101,76 @@ public class ParseScheduleTeacherThread extends Thread {
                     }
                 }
             });
-
         }
     }
+
+    private void applyScheduleFromCache(String data) {
+        String[] lessonsArray = data.split("\n⏎⏎\n");
+
+        if (savedSchedules.get(currentDayOfWeek - 1).isEmpty()) {
+            for (String raw : lessonsArray) {
+                savedSchedules.get(currentDayOfWeek - 1).add(raw);
+            }
+        }
+
+        for (int i = 0; i < lessons.length; i++) {
+            if (i < lessonsArray.length) {
+                SpannableStringBuilder spannable = new SpannableStringBuilder(lessonsArray[i]);
+                String fullText = spannable.toString();
+
+                // Ищем все возможные скобки и обрабатываем только те, что содержат "гр."
+                int searchIndex = 0;
+                while (searchIndex < fullText.length()) {
+                    int open = fullText.indexOf("(", searchIndex);
+                    if (open == -1) break;
+                    int close = fullText.indexOf(")", open);
+                    if (close == -1) break;
+
+                    String inside = fullText.substring(open + 1, close);
+                    if (inside.contains("гр.")) {
+                        String[] parts = inside.split("гр\\.");
+                        if (parts.length == 2) {
+                            String groupNumber = parts[0].trim();
+                            String facultyShort = parts[1].trim().split(",")[0].replace(" ", "");
+                            Log.d("facultyShort", facultyShort);
+                            String facultyCode = new FacultySiteName().showFacultyName(facultyShort);
+                            String groupUrl = "https://www.sgu.ru/schedule/" + facultyCode + "/do/" + groupNumber;
+
+                            final int spanStart = open + 1;
+                            final int spanEnd = close;
+
+                            spannable.setSpan(new ClickableSpan() {
+                                @Override
+                                public void onClick(View widget) {
+                                    Intent intent = new Intent(activity, MainActivity.class);
+                                    intent.putExtra("groupUrl", groupUrl);
+                                    activity.startActivity(intent);
+                                }
+                            }, spanStart, spanEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                        }
+                    }
+
+                    searchIndex = close + 1;
+                }
+
+                lessons[i].setText(spannable);
+                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+            } else {
+                lessons[i].setText("");
+            }
+        }
+
+        // Обновление дня недели (с жирной Ч/З)
+        SpannableStringBuilder builder = new SpannableStringBuilder(daysOfWeek[currentDayOfWeek] + " (");
+        String weekLetter = isNumeratorWeek ? "числ" : "знам";
+        builder.append(weekLetter).append(")");
+        int start = builder.length() - 5;
+        int end = builder.length() - 1;
+        builder.setSpan(new StyleSpan(Typeface.BOLD), end, end + 1, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        builder.setSpan(new ForegroundColorSpan(Color.parseColor("#800080")), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+        dayOfWeekText.setText(builder);
+    }
+
 
     private ArrayList<SpannableStringBuilder> parseSchedule(String scheduleUrl) {
         ArrayList<SpannableStringBuilder> schedule = new ArrayList<>();
@@ -127,7 +203,6 @@ public class ParseScheduleTeacherThread extends Thread {
                         if (!subgr.isEmpty()) lessonBuilder.append(" (").append(subgr).append(")");
                         lessonBuilder.append(": ").append(lessonName).append(" (");
 
-                        // Делает группу кликабельной
                         if (group.contains("гр.")) {
                             String[] parts = group.split("гр\\.");
                             String groupNumber = parts[0].trim();
@@ -156,13 +231,9 @@ public class ParseScheduleTeacherThread extends Thread {
 
                         switch (weekType) {
                             case "Ч":
-                                /*if (isNumeratorWeek)
-                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);*/
                                 numeratorLesson.append(lessonBuilder);
                                 break;
                             case "З":
-                                /*if (!isNumeratorWeek)
-                                    lessonBuilder.setSpan(new StyleSpan(Typeface.BOLD), 0, lessonBuilder.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);*/
                                 denominatorLesson.append(lessonBuilder);
                                 break;
                             default:

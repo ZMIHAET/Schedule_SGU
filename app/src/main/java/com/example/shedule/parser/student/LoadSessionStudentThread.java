@@ -28,6 +28,11 @@ public class LoadSessionStudentThread extends Thread {
     private final FacultySiteName facultySiteName;
     private final TableLayout sessionTable;
     private final LinearLayout sessionLayout;
+    private static final String PREFS_NAME = "session_prefs";
+    private static final String KEY_SESSION_DATA = "session_student_data";
+    private static final String KEY_SESSION_TIMESTAMP = "session_student_timestamp";
+    private static final long CACHE_DURATION = 7L * 24 * 60 * 60 * 1000; // 7 дней в миллисекундах
+
 
     public LoadSessionStudentThread(String sessionUrl, Document savedSessionDoc,
                                     MainActivity mainActivity, TableLayout sessionTable, LinearLayout sessionLayout) {
@@ -42,7 +47,18 @@ public class LoadSessionStudentThread extends Thread {
 
     @Override
     public void run() {
+        String cachedData = mainActivity.getSharedPreferences(PREFS_NAME, 0).getString(KEY_SESSION_DATA, null);
+        long savedTime = mainActivity.getSharedPreferences(PREFS_NAME, 0).getLong(KEY_SESSION_TIMESTAMP, 0);
+        long now = System.currentTimeMillis();
 
+        if (cachedData != null && now - savedTime < CACHE_DURATION) {
+            // Используем кэшированные данные
+            List<String> sessionData = deserializeSessionData(cachedData);
+            updateUI(sessionData);
+            return;
+        }
+
+        // Если кэша нет или он устарел, грузим из сети
         Document sessionDoc;
         try {
             if (savedSessionDoc == null || savedSessionDoc.text().isEmpty())
@@ -58,20 +74,47 @@ public class LoadSessionStudentThread extends Thread {
             return;
         }
 
-        // Парсим данные
         List<String> sessionData = parseSession(sessionDoc);
         Log.d("sessionData", sessionData.toString());
 
-            // Обновляем UI в главном потоке
-            new Handler(Looper.getMainLooper()).post(() -> {
-                sessionLayout.setVisibility(View.VISIBLE);
-                if (!sessionData.contains("Ошибка: не найден блок 'Расписание сессии'")) {
-                    createSessionRows(sessionData);
-                }
-                mainActivity.showSessionLayout();
-            });
+        // Сохраняем в SharedPreferences
+        saveSessionData(sessionData);
 
+        updateUI(sessionData);
     }
+
+    private void updateUI(List<String> sessionData) {
+        new Handler(Looper.getMainLooper()).post(() -> {
+            sessionLayout.setVisibility(View.VISIBLE);
+            if (!sessionData.contains("Ошибка: не найден блок 'Расписание сессии'")) {
+                createSessionRows(sessionData);
+            }
+            mainActivity.showSessionLayout();
+        });
+    }
+
+    private void saveSessionData(List<String> data) {
+        String serialized = serializeSessionData(data);
+        mainActivity.getSharedPreferences(PREFS_NAME, 0).edit()
+                .putString(KEY_SESSION_DATA, serialized)
+                .putLong(KEY_SESSION_TIMESTAMP, System.currentTimeMillis())
+                .apply();
+    }
+
+    // Простейшая сериализация в одну строку через join (без спец. библиотек)
+    private String serializeSessionData(List<String> data) {
+        return android.text.TextUtils.join("||", data);
+    }
+
+    private List<String> deserializeSessionData(String serialized) {
+        String[] parts = serialized.split("\\|\\|");
+        List<String> list = new ArrayList<>();
+        for (String s : parts) {
+            list.add(s);
+        }
+        return list;
+    }
+
 
     private List<String> parseSession(Document doc) {
         List<String> sessionData = new ArrayList<>();

@@ -2,11 +2,14 @@ package com.example.shedule.activity.student;
 
 import static com.example.shedule.R.*;
 
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -22,10 +25,8 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
-import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.text.HtmlCompat;
 import androidx.core.widget.NestedScrollView;
 
@@ -40,8 +41,6 @@ import com.example.shedule.parser.student.ParseGroupsThread;
 import com.example.shedule.parser.student.ParseInfoThread;
 import com.example.shedule.parser.student.ParseOwnScheduleThread;
 import com.example.shedule.parser.student.ParseScheduleStudentThread;
-import com.example.shedule.parser.teacher.checkTeachers.TeacherList;
-import com.example.shedule.parser.teacher.checkTeachers.TeacherParser;
 import com.example.shedule.parser.teacher.teacherId.TeacherIdCache;
 import com.example.shedule.parser.teacher.teacherId.TeacherIdCacheLoader;
 
@@ -331,8 +330,9 @@ public class MainActivity extends AppCompatActivity {
 
             if (isOwnSchedule)
                 scheduleGenerator(scheduleOwnUrl, selectedSubgroups);
-            else if (enemyUrl == null)
+            else if (enemyUrl == null) {
                 scheduleGenerator();
+            }
             else
                 scheduleGenerator(enemyUrl);
         });
@@ -365,15 +365,18 @@ public class MainActivity extends AppCompatActivity {
                     String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                     if (!isLessonVisibleZnam[0]) {
                         znamButton.setBackgroundColor(fadedColor);
-                        if(!rawText.contains("Ч:"))
+                        if (!rawText.contains("Ч:"))
                             lessons[i].setText("");
                         else {
                             if (!isLessonVisibleChis[0])
                                 lessons[i].setText("");
                             else {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                if (checkSwitches(savedLesson.substring(0, indexOfZnam)))
-                                    lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(0, indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                if (checkSwitches(savedLesson.substring(0, indexOfZnam))) {
+                                    SpannableStringBuilder spanned = restoreClickableSpans(savedLesson.substring(0, indexOfZnam));
+                                    lessons[i].setText(spanned);
+                                    lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                                }
                             }
                         }
                     } else {
@@ -381,12 +384,19 @@ public class MainActivity extends AppCompatActivity {
                         if (savedLesson.contains("Ч:")) {
                             if (!isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
-                            } else
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson.substring(indexOfZnam));
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            } else {
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            }
+                        } else {
+                            SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                            lessons[i].setText(spanned);
+                            lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                         }
-                        else
-                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                     }
                 }
             }
@@ -395,7 +405,6 @@ public class MainActivity extends AppCompatActivity {
 
         numButton.setOnClickListener(v -> {
             isLessonVisibleChis[0] = !isLessonVisibleChis[0];
-
             for (int i = 0; i < lessons.length; i++) {
                 String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
                 if (rawText.contains("Ч:")) {
@@ -409,8 +418,11 @@ public class MainActivity extends AppCompatActivity {
                                 lessons[i].setText("");
                             else {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                if (checkSwitches(savedLesson.substring(indexOfZnam)))
-                                    lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                if (checkSwitches(savedLesson.substring(indexOfZnam))) {
+                                    SpannableStringBuilder spanned = restoreClickableSpans(savedLesson.substring(indexOfZnam));
+                                    lessons[i].setText(spanned);
+                                    lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                                }
                             }
                         }
                     } else {
@@ -418,12 +430,19 @@ public class MainActivity extends AppCompatActivity {
                         if (savedLesson.contains("З:")) {
                             if (!isLessonVisibleZnam[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson.substring(0, indexOfZnam), HtmlCompat.FROM_HTML_MODE_LEGACY));
-                            } else
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson.substring(0, indexOfZnam));
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            } else {
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            }
+                        } else {
+                            SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                            lessons[i].setText(spanned);
+                            lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                         }
-                        else
-                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
                     }
                 }
             }
@@ -439,20 +458,27 @@ public class MainActivity extends AppCompatActivity {
                         lessons[i].setText("");
                     } else {
                         String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                        if (!rawText.contains("З:") && !rawText.contains("Ч:") )
-                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                        else {
-                            if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                            else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
+                        if (!rawText.contains("З:") && !rawText.contains("Ч:")) {
+                            SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                            lessons[i].setText(spanned);
+                            lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                        } else {
+                            if (isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            } else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
                                 String part = savedLesson.substring(0, indexOfZnam);
-                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                            }
-                            else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
+                                SpannableStringBuilder spanned = restoreClickableSpans(part);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            } else if (isLessonVisibleZnam[0] && !isLessonVisibleChis[0]) {
                                 int indexOfZnam = savedLesson.indexOf("З:");
                                 String part = savedLesson.substring(indexOfZnam);
-                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(part);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                             }
                         }
                     }
@@ -463,7 +489,6 @@ public class MainActivity extends AppCompatActivity {
         switchPr.setOnClickListener(v -> {
             boolean isChecked = switchPr.isChecked();
             for (int i = 0; i < lessons.length; i++) {
-                // Получаем текст без HTML-тегов для проверки содержимого
                 String rawText = HtmlCompat.fromHtml(savedSchedules.get(currentDayOfWeek - 1).get(i), HtmlCompat.FROM_HTML_MODE_LEGACY).toString();
                 if (rawText.contains("ПРАКТИКА")) {
                     if (!isChecked) {
@@ -471,25 +496,32 @@ public class MainActivity extends AppCompatActivity {
                     } else {
                         String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
                         if (!rawText.contains("З:") && !rawText.contains("Ч:")) {
-                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                            SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                            lessons[i].setText(spanned);
+                            lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                         } else {
                             if (isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                             } else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
                                 int indexOfZnam = rawText.indexOf("З:");
                                 String part = savedLesson.substring(0, indexOfZnam);
-                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(part);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                             } else if (isLessonVisibleZnam[0]) {
                                 int indexOfZnam = rawText.indexOf("З:");
                                 String part = savedLesson.substring(indexOfZnam);
-                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(part);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                             }
                         }
                     }
                 }
             }
         });
-
 
         switchLab.setOnClickListener(v -> {
             boolean isChecked = switchLab.isChecked();
@@ -500,26 +532,34 @@ public class MainActivity extends AppCompatActivity {
                         lessons[i].setText("");
                     } else {
                         String savedLesson = savedSchedules.get(currentDayOfWeek - 1).get(i);
-                        if (!savedLesson.contains("З:") && !savedLesson.contains("Ч:") )
-                            lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                        else {
-                            if (isLessonVisibleZnam[0] && isLessonVisibleChis[0])
-                                lessons[i].setText(HtmlCompat.fromHtml(savedLesson, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                            else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
-                                int indexOfZnam = savedLesson.indexOf("З:");
+                        if (!rawText.contains("З:") && !rawText.contains("Ч:")) {
+                            SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                            lessons[i].setText(spanned);
+                            lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                        } else {
+                            if (isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
+                                SpannableStringBuilder spanned = restoreClickableSpans(savedLesson);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            } else if (!isLessonVisibleZnam[0] && isLessonVisibleChis[0]) {
+                                int indexOfZnam = rawText.indexOf("З:");
                                 String part = savedLesson.substring(0, indexOfZnam);
-                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
-                            }
-                            else if (isLessonVisibleZnam[0]) {
-                                int indexOfZnam = savedLesson.indexOf("З:");
+                                SpannableStringBuilder spanned = restoreClickableSpans(part);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
+                            } else if (isLessonVisibleZnam[0]) {
+                                int indexOfZnam = rawText.indexOf("З:");
                                 String part = savedLesson.substring(indexOfZnam);
-                                lessons[i].setText(HtmlCompat.fromHtml(part, HtmlCompat.FROM_HTML_MODE_LEGACY));
+                                SpannableStringBuilder spanned = restoreClickableSpans(part);
+                                lessons[i].setText(spanned);
+                                lessons[i].setMovementMethod(LinkMovementMethod.getInstance());
                             }
                         }
                     }
                 }
             }
         });
+
 
         loadSession.setOnClickListener(v -> {
             String sessionUrl;
@@ -650,6 +690,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void scheduleGenerator(String Url){
+        Log.d("scheduleURL", Url);
         new ParseScheduleStudentThread(MainActivity.this, Url,
                 savedSchedules, currentDayOfWeek, dayOfWeekText,
                 lessons, isNumeratorWeek).start();
@@ -667,13 +708,35 @@ public class MainActivity extends AppCompatActivity {
         sessionLayout.setVisibility(View.VISIBLE);
     }
 
+    private SpannableStringBuilder restoreClickableSpans(String text) {
+        SpannableStringBuilder builder = new SpannableStringBuilder(text);
+        for (String name : TeacherIdCache.getAllTeachers()) {
+            int start = text.indexOf(name);
+            if (start != -1) {
+                int end = start + name.length();
+                String id = TeacherIdCache.getTeacherId(name);
+                if (id != null) {
+                    builder.setSpan(new ClickableSpan() {
+                        @Override
+                        public void onClick(View widget) {
+                            Intent intent = new Intent(MainActivity.this, TeacherActivity.class);
+                            intent.putExtra("teacherUrl", "https://www.sgu.ru/schedule/teacher/" + id);
+                            MainActivity.this.startActivity(intent);
+                        }
+                    }, start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+                }
+            }
+        }
+        return builder;
+    }
+
+
     private void logout() {
         getSharedPreferences("auth", MODE_PRIVATE).edit().clear().apply();
         Intent intent = new Intent(this, LoginActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         startActivity(intent);
     }
-
 
 
 }
