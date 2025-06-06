@@ -5,7 +5,6 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.Spinner;
 import android.widget.TableLayout;
 import android.widget.TableRow;
 import android.widget.TextView;
@@ -22,43 +21,43 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class LoadSessionStudentThread extends Thread {
-    private String sessionUrl;
+    private final String sessionUrl;
     private Document savedSessionDoc;
     private final MainActivity mainActivity;
-    private final FacultySiteName facultySiteName;
     private final TableLayout sessionTable;
     private final LinearLayout sessionLayout;
     private static final String PREFS_NAME = "session_prefs";
-    private static final String KEY_SESSION_DATA = "session_student_data";
-    private static final String KEY_SESSION_TIMESTAMP = "session_student_timestamp";
-    private static final long CACHE_DURATION = 7L * 24 * 60 * 60 * 1000; // 7 дней в миллисекундах
-
+    private static final long CACHE_DURATION = 7L * 24 * 60 * 60 * 1000; // 7 дней
 
     public LoadSessionStudentThread(String sessionUrl, Document savedSessionDoc,
                                     MainActivity mainActivity, TableLayout sessionTable, LinearLayout sessionLayout) {
         this.sessionUrl = sessionUrl;
         this.savedSessionDoc = savedSessionDoc;
         this.mainActivity = mainActivity;
-        this.facultySiteName = new FacultySiteName();
         this.sessionTable = sessionTable;
         this.sessionLayout = sessionLayout;
     }
 
+    private String getCacheKeyData() {
+        return "session_student_data_" + sessionUrl.hashCode();
+    }
+
+    private String getCacheKeyTimestamp() {
+        return "session_student_timestamp_" + sessionUrl.hashCode();
+    }
 
     @Override
     public void run() {
-        String cachedData = mainActivity.getSharedPreferences(PREFS_NAME, 0).getString(KEY_SESSION_DATA, null);
-        long savedTime = mainActivity.getSharedPreferences(PREFS_NAME, 0).getLong(KEY_SESSION_TIMESTAMP, 0);
+        String cachedData = mainActivity.getSharedPreferences(PREFS_NAME, 0).getString(getCacheKeyData(), null);
+        long savedTime = mainActivity.getSharedPreferences(PREFS_NAME, 0).getLong(getCacheKeyTimestamp(), 0);
         long now = System.currentTimeMillis();
 
         if (cachedData != null && now - savedTime < CACHE_DURATION) {
-            // Используем кэшированные данные
             List<String> sessionData = deserializeSessionData(cachedData);
             updateUI(sessionData);
             return;
         }
 
-        // Если кэша нет или он устарел, грузим из сети
         Document sessionDoc;
         try {
             if (savedSessionDoc == null || savedSessionDoc.text().isEmpty())
@@ -77,9 +76,7 @@ public class LoadSessionStudentThread extends Thread {
         List<String> sessionData = parseSession(sessionDoc);
         Log.d("sessionData", sessionData.toString());
 
-        // Сохраняем в SharedPreferences
         saveSessionData(sessionData);
-
         updateUI(sessionData);
     }
 
@@ -96,12 +93,11 @@ public class LoadSessionStudentThread extends Thread {
     private void saveSessionData(List<String> data) {
         String serialized = serializeSessionData(data);
         mainActivity.getSharedPreferences(PREFS_NAME, 0).edit()
-                .putString(KEY_SESSION_DATA, serialized)
-                .putLong(KEY_SESSION_TIMESTAMP, System.currentTimeMillis())
+                .putString(getCacheKeyData(), serialized)
+                .putLong(getCacheKeyTimestamp(), System.currentTimeMillis())
                 .apply();
     }
 
-    // Простейшая сериализация в одну строку через join (без спец. библиотек)
     private String serializeSessionData(List<String> data) {
         return android.text.TextUtils.join("||", data);
     }
@@ -115,11 +111,9 @@ public class LoadSessionStudentThread extends Thread {
         return list;
     }
 
-
     private List<String> parseSession(Document doc) {
         List<String> sessionData = new ArrayList<>();
 
-        // Находим секцию "Расписание сессии"
         Element sessionTable;
         if (sessionUrl.contains("/zo/"))
             sessionTable = doc.selectFirst(".schedule__wrap-lection table");
@@ -136,34 +130,26 @@ public class LoadSessionStudentThread extends Thread {
         for (Element row : rows) {
             Elements cells = row.select("td");
 
-            if (cells.size() < 4) continue; // Пропускаем пустые строки
+            if (cells.size() < 4) continue;
 
-            // Извлекаем дату и время
             String[] dateTimeParts = cells.get(0).text().trim().split(" ");
             String date, time;
             if (sessionUrl.contains("/zo/")) {
                 date = dateTimeParts[0] + " " + dateTimeParts[1] + "\n" + dateTimeParts[2];
                 time = dateTimeParts[3];
-            }
-            else {
+            } else {
                 date = dateTimeParts[0] + " " + dateTimeParts[1] + "\n" + dateTimeParts[2] + " " + dateTimeParts[3];
                 time = dateTimeParts[4];
             }
 
-            // Извлекаем тип экзамена и дисциплину
             String examType = cells.get(1).selectFirst(".schedule-form") != null ? cells.get(1).selectFirst(".schedule-form").text() : "";
             String subject = cells.get(1).selectFirst(".schedule-discipline") != null ? cells.get(1).selectFirst(".schedule-discipline").text() : "";
 
-            // Извлекаем преподавателя
             String teacher = cells.get(2).text().trim();
-
-            // Извлекаем аудиторию
             String location = cells.get(3).text().trim();
 
-            // Формируем строку с информацией о предмете
             String info = examType + ": " + subject + "\nПреподаватель: " + teacher + "\nАудитория: " + location;
 
-            // Добавляем в список
             sessionData.add(date);
             sessionData.add(time);
             sessionData.add(info);
@@ -175,18 +161,17 @@ public class LoadSessionStudentThread extends Thread {
     private void createSessionRows(List<String> sessionData) {
         sessionTable.removeAllViews();
 
-        // Поиск ближайшего экзамена
         int closestIndex = -1;
         long minDiff = Long.MAX_VALUE;
 
         for (int i = 0; i < sessionData.size(); i += 3) {
             try {
-                String dateTimeStr = sessionData.get(i); // дата + \n + время
+                String dateTimeStr = sessionData.get(i);
                 String[] parts = dateTimeStr.split("\n");
-                String yearRaw = parts[1]; // "2025 г."
-                String year = yearRaw.replaceAll("\\D", ""); // "2025"
-                String datePart = parts[0] + ' ' + year;// пример: "24 мая 2025"
-                String timePart = sessionData.get(i + 1); // пример: "10:00"
+                String yearRaw = parts[1];
+                String year = yearRaw.replaceAll("\\D", "");
+                String datePart = parts[0] + ' ' + year;
+                String timePart = sessionData.get(i + 1);
 
                 java.text.SimpleDateFormat format = new java.text.SimpleDateFormat("dd MMMM yyyy HH:mm", java.util.Locale.forLanguageTag("ru"));
                 java.util.Date parsedDate = format.parse(datePart + " " + timePart);
@@ -197,11 +182,10 @@ public class LoadSessionStudentThread extends Thread {
                     closestIndex = i;
                 }
             } catch (Exception e) {
-                e.printStackTrace(); // на случай ошибки разбора даты
+                e.printStackTrace();
             }
         }
 
-        // Создание строк таблицы
         for (int i = 0; i < sessionData.size(); i += 3) {
             TableRow row = new TableRow(mainActivity);
             row.setLayoutParams(new TableLayout.LayoutParams(
@@ -221,7 +205,6 @@ public class LoadSessionStudentThread extends Thread {
             infoTextView.setLayoutParams(new TableRow.LayoutParams(0, TableRow.LayoutParams.WRAP_CONTENT, 2));
             infoTextView.setText(sessionData.get(i + 2));
 
-            // Если это ближайший экзамен — выделяем жирным
             if (i == closestIndex) {
                 dateTextView.setTypeface(null, android.graphics.Typeface.BOLD);
                 timeTextView.setTypeface(null, android.graphics.Typeface.BOLD);
@@ -234,8 +217,5 @@ public class LoadSessionStudentThread extends Thread {
 
             sessionTable.addView(row);
         }
-
     }
-
-
 }

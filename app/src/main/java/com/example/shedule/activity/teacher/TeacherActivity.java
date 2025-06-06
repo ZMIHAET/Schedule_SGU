@@ -42,10 +42,10 @@ public class TeacherActivity extends AppCompatActivity {
 
     private Spinner facSpinner, teacherSpinner;
     private LinearLayout loadLayout, scheduleLayout, switchLayout,
-    loadSessionLayout, sessionLayout;
+    loadSessionLayout, sessionLayout, returnLayout;
     private TableLayout sessionTable, scheduleTable;
     private Button loadButton, loadOwnButton, prevDayButton, nextDayButton,
-            znamButton, numButton, loadSession, returnButton, backButton, loadTeachersButton, loadDepartment, logoutButton;
+            znamButton, numButton, loadSession, returnButton, backButton, loadTeachersButton, loadDepartment, logoutButton, returnToTeachersButton;
     private SwitchCompat switchLek, switchPr, switchLab;
     private TextView dayOfWeekText;
     private int currentDayOfWeek = 1, fadedColor;
@@ -102,6 +102,10 @@ public class TeacherActivity extends AppCompatActivity {
         logoutButton = findViewById(R.id.logout_button);
 
         loadDepartment = findViewById(R.id.load_department);
+
+        returnLayout = findViewById(R.id.return_layout);
+        returnToTeachersButton = findViewById(R.id.returnToTeachers_button);
+
         loadDepartment.setEnabled(false);
 
         if (TeacherList.getTeachers().isEmpty()) {
@@ -500,6 +504,7 @@ public class TeacherActivity extends AppCompatActivity {
 
         loadSession.setOnClickListener(v -> {
             // Скрываем лишние элементы
+            returnLayout.setVisibility(View.GONE);
             scheduleLayout.setVisibility(View.GONE);
             scheduleTable.setVisibility(View.GONE);
             switchLayout.setVisibility(View.GONE);
@@ -519,7 +524,7 @@ public class TeacherActivity extends AppCompatActivity {
                         : getIntent().getStringExtra("fullName");
                 finalUrl = baseUrl + teacherParserThread.getTeacherHref(teacher);
             }
-
+            Log.d("wtf", finalUrl);
             new LoadSessionTeacherThread(TeacherActivity.this, sessionTable, sessionLayout, finalUrl).start();
         });
 
@@ -565,7 +570,10 @@ public class TeacherActivity extends AppCompatActivity {
             scheduleLayout.setVisibility(View.VISIBLE);
             scheduleTable.setVisibility(View.VISIBLE);
             switchLayout.setVisibility(View.VISIBLE);
-            loadSessionLayout.setVisibility(View.VISIBLE);
+            if (isOwnSchedule)
+                loadSessionLayout.setVisibility(View.VISIBLE);
+            else
+                returnLayout.setVisibility(View.VISIBLE);
             sessionLayout.setVisibility(View.GONE);
             loadDepartment.setVisibility(View.GONE);
             logoutButton.setVisibility(View.GONE);
@@ -591,6 +599,24 @@ public class TeacherActivity extends AppCompatActivity {
             }
 
         });
+
+        returnToTeachersButton.setOnClickListener(v -> {
+            savedSchedules.clear();
+            for (int i = 0; i < 7; i++) {
+                savedSchedules.add(new ArrayList<>());
+            }
+            savedSessionDoc = new Document("");
+            savedSessionData.clear();
+            loadLayout.setVisibility(View.VISIBLE);
+
+            returnLayout.setVisibility(View.GONE);
+            returnToTeachersButton.setVisibility(View.GONE);
+            scheduleLayout.setVisibility(View.GONE);
+            scheduleTable.setVisibility(View.GONE);
+            switchLayout.setVisibility(View.GONE);
+            loadSessionLayout.setVisibility(View.GONE);
+        });
+
         logoutButton.setOnClickListener(v -> logout());
 
 
@@ -623,11 +649,14 @@ public class TeacherActivity extends AppCompatActivity {
         savedSessionDoc = new Document("");
         savedSessionData.clear();
         loadLayout.setVisibility(View.GONE);
+        loadSessionLayout.setVisibility(View.GONE);
 
+
+        returnLayout.setVisibility(View.VISIBLE);
+        returnToTeachersButton.setVisibility(View.VISIBLE);
         scheduleLayout.setVisibility(View.VISIBLE);
         scheduleTable.setVisibility(View.VISIBLE);
         switchLayout.setVisibility(View.VISIBLE);
-        loadSessionLayout.setVisibility(View.VISIBLE);
         numButton.setBackgroundResource(android.R.drawable.btn_default);
         znamButton.setBackgroundResource(android.R.drawable.btn_default);
         switchLek.setChecked(true);

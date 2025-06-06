@@ -418,38 +418,60 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            app:layout_constraintTop_toBottomOf="@+id/switch_layout"
-            android:weightSum="3">
+            app:layout_constraintTop_toBottomOf="@+id/switch_layout">
 
-            <!-- Контейнер с кнопкой "Преподаватели" -->
+            <!-- Основной блок с кнопками -->
             <LinearLayout
-                android:id="@+id/load_session_layout"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                >
+
+                <LinearLayout
+                    android:id="@+id/load_session_layout"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="horizontal">
+
+                    <Button
+                        android:id="@+id/load_teachers"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/teachers_schedule" />
+                </LinearLayout>
 
                 <Button
-                    android:id="@+id/load_teachers"
-                    android:layout_width="match_parent"
+                    android:id="@+id/load_department"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="@string/teachers_schedule" />
+                    android:layout_weight="1"
+                    android:text="@string/department" />
+
+                <Button
+                    android:id="@+id/logout_button"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/logout" />
             </LinearLayout>
 
-            <!-- Кнопка "Кафедра" -->
-            <Button
-                android:id="@+id/load_department"
-                android:layout_width="0dp"
+            <!-- Кнопка "Назад" справа -->
+            <LinearLayout
+                android:id="@+id/return_layout"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/department" />
+                android:orientation="horizontal"
+                android:gravity="end|center_vertical"
+                android:visibility="gone">
 
-            <Button
-                android:id="@+id/logout_button"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="@string/logout" />
+                <Button
+                    android:id="@+id/returnToTeachers_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/back" />
+            </LinearLayout>
         </LinearLayout>
 
 
